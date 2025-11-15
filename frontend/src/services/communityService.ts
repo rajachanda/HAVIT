@@ -1,6 +1,7 @@
 import { 
   collection, 
   addDoc, 
+  setDoc,
   doc, 
   updateDoc, 
   deleteDoc, 
@@ -467,6 +468,32 @@ export const followUser = async (currentUserId: string, targetUserId: string): P
   await updateDoc(targetUserRef, {
     followers: arrayUnion(currentUserId)
   });
+  
+  // Create a follower notification for the target user
+  try {
+    const currentUserSnap = await getDoc(currentUserRef);
+    const currentUserData = currentUserSnap.exists() ? currentUserSnap.data() : {};
+    const actorName = currentUserData?.username || 'Someone';
+    const actorAvatar = currentUserData?.avatar || '👤';
+
+    await addDoc(collection(db, 'notifications'), {
+      recipientId: targetUserId,
+      type: 'new_follower',
+      title: 'New follower',
+      message: `${actorName} started following you`,
+      icon: actorAvatar,
+      link: `/profile/${currentUserId}`,
+      timestamp: Timestamp.now(),
+      read: false,
+      data: {
+        actorId: currentUserId,
+        actorName,
+        actorAvatar
+      }
+    });
+  } catch (err) {
+    console.warn('Failed to create follow notification:', err);
+  }
 };
 
 export const unfollowUser = async (currentUserId: string, targetUserId: string): Promise<void> => {

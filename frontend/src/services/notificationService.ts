@@ -18,9 +18,12 @@ export type NotificationType =
   | 'level_up'
   | 'achievement';
 
+// Add follower notification type
+export type _AugmentedNotificationType = NotificationType | 'new_follower';
+
 export interface Notification {
   id: string;
-  type: NotificationType;
+  type: _AugmentedNotificationType;
   title: string;
   message: string;
   icon: string;
@@ -116,6 +119,42 @@ export const subscribeToNotifications = (
       if (onError) onError(error as Error);
     }
   );
+
+  // Subscribe to generic notifications collection (e.g., new followers, custom notifications)
+  const notificationsRef = collection(db, 'notifications');
+  const notificationsQuery = query(
+    notificationsRef,
+    where('recipientId', '==', userId)
+  );
+
+  const unsubNotifications = onSnapshot(
+    notificationsQuery,
+    (snapshot) => {
+      const notifs = snapshot.docs
+        .map(doc => {
+          const data = doc.data();
+          if (!data) return null;
+          return {
+            id: doc.id,
+            type: data.type as _AugmentedNotificationType,
+            title: data.title || 'Notification',
+            message: data.message || '',
+            icon: data.icon || '🔔',
+            link: data.link || undefined,
+            timestamp: data.timestamp || Timestamp.now(),
+            read: !!data.read,
+            data: data.data || {}
+          } as Notification;
+        })
+        .filter(Boolean) as Notification[];
+
+      updateNotifications([...notifs]);
+    },
+    (error) => {
+      console.error('Generic notifications error:', error);
+      if (onError) onError(error as Error);
+    }
+  );
   
   function updateNotifications(newNotifs: Notification[]) {
     // Sort by timestamp (newest first)
@@ -129,6 +168,7 @@ export const subscribeToNotifications = (
   return () => {
     unsubChallenge();
     unsubAISage();
+    unsubNotifications();
   };
 };
 
@@ -145,16 +185,17 @@ export const markAsRead = (notificationId: string): void => {
 };
 
 // Get notification icon component based on type
-export const getNotificationIcon = (type: NotificationType): string => {
-  const iconMap: Record<NotificationType, string> = {
+export const getNotificationIcon = (type: _AugmentedNotificationType): string => {
+  const iconMap: Record<_AugmentedNotificationType, string> = {
     challenge_request: '⚔️',
     ai_sage_challenge: '🧙‍♂️',
     challenge_accepted: '✅',
     challenge_completed: '🏆',
     streak_milestone: '🔥',
     level_up: '⬆️',
-    achievement: '🎖️'
-  };
+    achievement: '🎖️',
+    new_follower: '👋'
+  } as const;
   
   return iconMap[type] || '🔔';
 };
