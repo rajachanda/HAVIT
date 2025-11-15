@@ -18,6 +18,7 @@ import Challenges from "./pages/Challenges";
 import Leaderboard from "./pages/Leaderboard";
 import Squad from "./pages/Squad";
 import Community from "./pages/Community";
+import CommunityPage from "./pages/CommunityPage";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -237,7 +238,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <Community />
+                    <CommunityPage />
                   </Layout>
                 </ProtectedRoute>
               }

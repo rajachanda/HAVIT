@@ -3,16 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Shield, Trophy, Flame, Zap, Award, Calendar, User, Mail, Cake, Users2 } from "lucide-react";
+import { Shield, Trophy, Flame, Zap, Award, Calendar, User, Mail, Cake, Users2, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUser, useHabits } from "@/hooks/useFirebase";
+import { useUserPosts } from "@/hooks/useCommunityFeed";
 import { useNavigate } from "react-router-dom";
+import PostCard from "@/components/PostCard";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { data: userData, isLoading: userLoading } = useUser(currentUser?.uid || null);
   const { habits, loading: habitsLoading } = useHabits(currentUser?.uid || null);
+  const { posts, loading: postsLoading, refresh: refreshPosts } = useUserPosts(currentUser?.uid || '');
 
   // Calculate stats from real data
   const calculateStats = () => {
@@ -239,6 +242,59 @@ const Profile = () => {
             </div>
             <Button variant="outline">View Champion</Button>
           </div>
+        </Card>
+
+        {/* User Posts Section */}
+        <Card className="bg-card border-border p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <MessageCircle className="w-6 h-6 text-primary" />
+              Your Posts
+            </h2>
+            <Button 
+              onClick={() => navigate('/community')}
+              variant="outline"
+              size="sm"
+            >
+              View Community
+            </Button>
+          </div>
+
+          {postsLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-muted-foreground text-sm">Loading posts...</p>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-12">
+              <MessageCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No posts yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Share your habit journey with the community!
+              </p>
+              <Button 
+                onClick={() => navigate('/community')}
+                className="bg-primary hover:bg-primary/90"
+              >
+                Create Your First Post
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {posts.slice(0, 3).map((post) => (
+                <PostCard key={post.id} post={post} onPostDeleted={refreshPosts} onPostUpdated={refreshPosts} />
+              ))}
+              {posts.length > 3 && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate('/community')}
+                >
+                  View All {posts.length} Posts
+                </Button>
+              )}
+            </div>
+          )}
         </Card>
       </div>
     </div>

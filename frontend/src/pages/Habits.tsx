@@ -5,84 +5,72 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { HabitCard } from "@/components/HabitCard";
-import { Plus, Search, Filter } from "lucide-react";
-
-interface Habit {
-  id: string;
-  title: string;
-  category: string;
-  streak: number;
-  completed: boolean;
-  xp: number;
-}
+import { QuickAddHabit } from "@/components/QuickAddHabit";
+import { Plus, Search, Filter, Zap } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useHabits } from "@/hooks/useFirebase";
 
 const Habits = () => {
   const navigate = useNavigate();
-  const [habits, setHabits] = useState<Habit[]>([
-    {
-      id: "1",
-      title: "Morning Workout",
-      category: "Fitness",
-      streak: 12,
-      completed: false,
-      xp: 15,
-    },
-    {
-      id: "2",
-      title: "Read 30 Minutes",
-      category: "Learning",
-      streak: 8,
-      completed: true,
-      xp: 10,
-    },
-    {
-      id: "3",
-      title: "Meditate",
-      category: "Wellness",
-      streak: 5,
-      completed: false,
-      xp: 10,
-    },
-    {
-      id: "4",
-      title: "Code Practice",
-      category: "Career",
-      streak: 15,
-      completed: true,
-      xp: 15,
-    },
-    {
-      id: "5",
-      title: "Drink Water (8 glasses)",
-      category: "Wellness",
-      streak: 20,
-      completed: false,
-      xp: 5,
-    },
-    {
-      id: "6",
-      title: "Journal",
-      category: "Wellness",
-      streak: 3,
-      completed: false,
-      xp: 10,
-    },
-  ]);
+  const { currentUser } = useAuth();
+  const { habits, loading } = useHabits(currentUser?.uid || null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  const toggleHabit = (id: string) => {
-    setHabits(habits.map((h) => (h.id === id ? { ...h, completed: !h.completed } : h)));
-  };
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
 
   const categories = Array.from(new Set(habits.map((h) => h.category)));
 
   const filteredHabits = habits.filter((habit) => {
-    const matchesSearch = habit.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = habit.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || habit.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  // Calculate stats
+  const today = new Date().toISOString().split('T')[0];
+  const completedToday = habits.filter((h) => 
+    h.completions?.some((c) => c.date === today && c.completed)
+  ).length;
+
+  const calculateStreak = (habit: any) => {
+    if (!habit.completions || habit.completions.length === 0) return 0;
+    const sortedCompletions = [...habit.completions]
+      .filter((c: any) => c.completed)
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    let streak = 0;
+    let currentDate = new Date();
+    for (const completion of sortedCompletions) {
+      const completionDate = new Date(completion.date);
+      const daysDiff = Math.floor((currentDate.getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysDiff === streak) {
+        streak++;
+        currentDate = completionDate;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  };
+
+  const longestStreak = habits.length > 0 
+    ? Math.max(...habits.map((h) => calculateStreak(h)), 0) 
+    : 0;
+
+  const completionRate = habits.length > 0 
+    ? Math.round((completedToday / habits.length) * 100) 
+    : 0;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading habits...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
@@ -93,15 +81,35 @@ const Habits = () => {
             <h1 className="text-4xl font-bold text-foreground">All Habits</h1>
             <p className="text-muted-foreground mt-1">Manage and track your daily habits</p>
           </div>
-          <Button 
-            size="lg" 
-            className="bg-primary hover:bg-primary-dark shadow-primary"
-            onClick={() => navigate('/habits/new')}
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Create Habit
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="bg-warning/10 border-warning text-warning hover:bg-warning hover:text-warning-foreground"
+              onClick={() => setShowQuickAdd(true)}
+            >
+              <Zap className="w-5 h-5 mr-2" />
+              Quick Add
+            </Button>
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary-dark shadow-primary"
+              onClick={() => navigate('/habits/new')}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Create Habit
+            </Button>
+          </div>
         </div>
+
+        {/* Quick Add Modal */}
+        <QuickAddHabit 
+          open={showQuickAdd} 
+          onOpenChange={setShowQuickAdd}
+          onSuccess={() => {
+            // Habits will auto-refresh from Firebase
+          }}
+        />
 
         {/* Filters */}
         <Card className="bg-card border-border p-4">
@@ -146,22 +154,19 @@ const Habits = () => {
           </Card>
           <Card className="bg-card border-border p-4 text-center">
             <div className="text-3xl font-bold text-success">
-              {habits.filter((h) => h.completed).length}
+              {completedToday}
             </div>
             <div className="text-sm text-muted-foreground">Completed Today</div>
           </Card>
           <Card className="bg-card border-border p-4 text-center">
             <div className="text-3xl font-bold text-warning">
-              {Math.max(...habits.map((h) => h.streak))}
+              {longestStreak}
             </div>
             <div className="text-sm text-muted-foreground">Longest Streak</div>
           </Card>
           <Card className="bg-card border-border p-4 text-center">
             <div className="text-3xl font-bold text-primary">
-              {Math.round(
-                (habits.filter((h) => h.completed).length / habits.length) * 100
-              )}
-              %
+              {completionRate}%
             </div>
             <div className="text-sm text-muted-foreground">Completion Rate</div>
           </Card>
@@ -171,11 +176,24 @@ const Habits = () => {
         <div className="space-y-3">
           {filteredHabits.length > 0 ? (
             filteredHabits.map((habit) => (
-              <HabitCard key={habit.id} habit={habit} onToggle={() => toggleHabit(habit.id)} />
+              <HabitCard key={habit.id} habit={habit} userId={currentUser?.uid || ''} />
             ))
           ) : (
             <Card className="bg-card border-border p-12 text-center">
-              <p className="text-muted-foreground">No habits found. Try adjusting your filters.</p>
+              <p className="text-muted-foreground">
+                {habits.length === 0 
+                  ? "No habits yet. Create your first habit to get started!" 
+                  : "No habits found. Try adjusting your filters."}
+              </p>
+              {habits.length === 0 && (
+                <Button 
+                  className="mt-4" 
+                  onClick={() => navigate('/habits/new')}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Habit
+                </Button>
+              )}
             </Card>
           )}
         </div>

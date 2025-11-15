@@ -10,6 +10,7 @@ import { Plus, Flame, Trophy, Zap, Sparkles, ArrowUp } from "lucide-react";
 import { ChampionDisplay } from "./ChampionDisplay";
 import { HabitCard } from "./HabitCard";
 import { StatsBar } from "./StatsBar";
+import { QuickAddHabit } from "./QuickAddHabit";
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export const Dashboard = () => {
   // Level state for testing animations
   const [testLevel, setTestLevel] = useState(1);
   const [showThunder, setShowThunder] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
   const prevLevelRef = useRef(1);
 
   // Update test level when user data loads
@@ -116,15 +118,36 @@ export const Dashboard = () => {
               Level {userData?.level || 1} • {userData?.totalXP || 0} XP • {userData?.currentStreak || 0} day streak 🔥
             </p>
           </div>
-          <Button 
-            size="lg" 
-            className="bg-primary hover:bg-primary-dark"
-            onClick={() => navigate('/habits/new')}
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            New Habit
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="bg-warning/10 border-warning text-warning hover:bg-warning hover:text-warning-foreground hidden sm:flex"
+              onClick={() => setShowQuickAdd(true)}
+            >
+              <Zap className="w-5 h-5 mr-2" />
+              Quick Add
+            </Button>
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary-dark"
+              onClick={() => navigate('/habits/new')}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              <span className="hidden sm:inline">New Habit</span>
+              <span className="sm:hidden">New</span>
+            </Button>
+          </div>
         </div>
+
+        {/* Quick Add Modal */}
+        <QuickAddHabit 
+          open={showQuickAdd} 
+          onOpenChange={setShowQuickAdd}
+          onSuccess={() => {
+            // Habits will auto-refresh from Firebase
+          }}
+        />
 
         {/* Stats Overview */}
         <Card className="bg-card border-border p-6 shadow-card">
