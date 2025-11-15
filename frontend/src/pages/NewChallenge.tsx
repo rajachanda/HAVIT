@@ -96,7 +96,19 @@ export default function NewChallenge() {
       try {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
         if (userDoc.exists()) {
-          setCurrentUserData(userDoc.data() as UserData);
+          const data = userDoc.data() as UserData;
+          setCurrentUserData(data);
+
+          // If no stake selected yet, pre-select a recommended stake
+          try {
+            const levelInfo = getLevelInfo(data.totalXP);
+            const stakes = getRecommendedStakes(levelInfo.level, data.totalXP);
+            if (stakes.length > 0 && selectedStake === 0) {
+              setSelectedStake(stakes[0]);
+            }
+          } catch (e) {
+            // ignore
+          }
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -241,7 +253,29 @@ export default function NewChallenge() {
                         ? 'border-warning bg-warning/10'
                         : 'border-border hover:border-warning/50'
                     }`}
-                    onClick={() => setSelectedUser(user)}
+                    onClick={async () => {
+                      try {
+                        const userRef = doc(db, 'users', user.id);
+                        const snap = await getDoc(userRef);
+                        if (snap.exists()) {
+                          const data = snap.data() as any;
+                          setSelectedUser({
+                            id: user.id,
+                            username: data.username || user.username,
+                            firstName: data.firstName || user.firstName,
+                            lastName: data.lastName || user.lastName,
+                            avatar: data.avatar || user.avatar,
+                            level: data.level || 1,
+                            totalXP: data.totalXP || 0,
+                          } as AppUser);
+                        } else {
+                          setSelectedUser(user);
+                        }
+                      } catch (err) {
+                        console.error('Error fetching user details:', err);
+                        setSelectedUser(user);
+                      }
+                    }}
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12 border-2 border-border">
@@ -464,7 +498,7 @@ export default function NewChallenge() {
               <div>
                 <p className="text-sm font-medium mb-3">Choose your stake</p>
                 <div className="grid grid-cols-2 gap-3">
-                  {getRecommendedStakes(currentUserData.level, currentUserData.totalXP).map((stake) => (
+                    {getRecommendedStakes(getLevelInfo(currentUserData.totalXP).level, currentUserData.totalXP).map((stake) => (
                     <Card
                       key={stake}
                       className={`p-4 cursor-pointer transition-all text-center hover:shadow-md ${

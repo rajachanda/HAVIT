@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useHabits } from '@/hooks/useFirebase';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Users, Target, Clock, Coins, ChevronRight, ChevronLeft } from 'lucide-react';
-import { collection, getDocs, query, where, limit, doc, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { createChallenge } from '@/services/challengesService';
 import { getRecommendedStakes, canAffordStake, getLevelInfo } from '@/lib/xpSystem';
@@ -252,8 +252,28 @@ export function NewChallengeDialog({ open, onOpenChange }: NewChallengeDialogPro
                     className={`p-4 cursor-pointer hover:bg-muted/50 transition ${
                       selectedUser?.id === user.id ? 'border-primary border-2' : ''
                     }`}
-                    onClick={() => {
-                      setSelectedUser(user);
+                    onClick={async () => {
+                      try {
+                        const userRef = doc(db, 'users', user.id);
+                        const snap = await getDoc(userRef);
+                        if (snap.exists()) {
+                          const data = snap.data() as UserData;
+                          setSelectedUser({
+                            id: user.id,
+                            username: data.username || user.username,
+                            firstName: data.firstName || user.firstName,
+                            lastName: data.lastName || user.lastName,
+                            avatar: data.avatar || user.avatar,
+                            level: data.level || 1,
+                            totalXP: data.totalXP || 0,
+                          } as AppUser);
+                        } else {
+                          setSelectedUser(user);
+                        }
+                      } catch (err) {
+                        console.error('Error fetching user details:', err);
+                        setSelectedUser(user);
+                      }
                       setStep('habit');
                     }}
                   >
