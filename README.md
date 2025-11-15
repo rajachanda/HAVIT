@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# HAVIT - The Only Habit Tracker People Keep Using
 
 ## Project info
 
@@ -24,10 +24,10 @@ Follow these steps:
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone https://github.com/rajachanda/havit.git
 
 # Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+cd havit
 
 # Step 3: Install the necessary dependencies.
 npm i
@@ -59,6 +59,13 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+
+## Features
+
+- **Character Progression System**: Level-based character evolution with visual progression
+- **Thunder Animation**: Smooth blue-themed lightning effects on level up
+- **Habit Tracking**: Complete habit management system
+- **Social Features**: Challenges, leaderboards, and community features
 
 ## How can I deploy this project?
 
