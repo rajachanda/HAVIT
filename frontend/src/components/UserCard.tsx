@@ -116,7 +116,7 @@ export default function UserCard({ user, onFollowChange, compact = false }: User
 
   // Full version for grid/modal
   return (
-    <Card className="bg-card border-border p-4 hover:border-primary transition-colors shadow-card">
+    <Card className="bg-card/60 backdrop-blur-xl p-4 hover:bg-card-hover transition-colors shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
       <div className="flex flex-col items-center text-center">
         {/* Avatar */}
         <div

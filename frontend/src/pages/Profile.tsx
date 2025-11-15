@@ -66,9 +66,9 @@ const Profile = () => {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Profile Header */}
-        <Card className="bg-card border-border p-8 shadow-card">
+        <Card className="bg-card/60 backdrop-blur-xl p-8 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
           <div className="flex flex-col md:flex-row items-center gap-6">
-            <Avatar className="w-32 h-32 border-4 border-primary">
+            <Avatar className="w-32 h-32 shadow-xl">
               <AvatarFallback className="text-4xl font-bold bg-primary text-primary-foreground">
                 {userData?.firstName?.charAt(0) || currentUser?.email?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
@@ -111,7 +111,7 @@ const Profile = () => {
           </div>
 
           {/* User Details */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border pt-6">
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 pt-6">
             <div className="flex items-center gap-3">
               <User className="w-5 h-5 text-muted-foreground" />
               <div>
@@ -163,32 +163,32 @@ const Profile = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Card className="bg-card border-border p-6 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-6 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <Flame className="w-8 h-8 text-warning mx-auto mb-2" />
             <div className="text-3xl font-bold text-foreground">{userData?.currentStreak || 0}</div>
             <div className="text-sm text-muted-foreground">Current Streak</div>
           </Card>
-          <Card className="bg-card border-border p-6 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-6 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <Trophy className="w-8 h-8 text-primary mx-auto mb-2" />
             <div className="text-3xl font-bold text-foreground">{userData?.longestStreak || 0}</div>
             <div className="text-sm text-muted-foreground">Longest Streak</div>
           </Card>
-          <Card className="bg-card border-border p-6 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-6 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <Zap className="w-8 h-8 text-success mx-auto mb-2" />
             <div className="text-3xl font-bold text-foreground">{stats.completionRate}%</div>
             <div className="text-sm text-muted-foreground">Completion Rate</div>
           </Card>
-          <Card className="bg-card border-border p-6 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-6 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <Calendar className="w-8 h-8 text-primary mx-auto mb-2" />
             <div className="text-3xl font-bold text-foreground">{stats.totalHabits}</div>
             <div className="text-sm text-muted-foreground">Total Habits</div>
           </Card>
-          <Card className="bg-card border-border p-6 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-6 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <Award className="w-8 h-8 text-warning mx-auto mb-2" />
             <div className="text-3xl font-bold text-foreground">0</div>
             <div className="text-sm text-muted-foreground">Challenges Won</div>
           </Card>
-          <Card className="bg-card border-border p-6 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-6 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <Zap className="w-8 h-8 text-success mx-auto mb-2" />
             <div className="text-3xl font-bold text-foreground">{userData?.totalXP || 0}</div>
             <div className="text-sm text-muted-foreground">Total XP</div>
@@ -196,7 +196,7 @@ const Profile = () => {
         </div>
 
         {/* Achievements */}
-        <Card className="bg-card border-border p-6">
+        <Card className="bg-card/60 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
           <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
             <Trophy className="w-6 h-6 text-warning" />
             Achievements
@@ -205,10 +205,10 @@ const Profile = () => {
             {achievements.map((achievement, index) => (
               <div
                 key={index}
-                className={`p-4 rounded-lg border transition-all duration-300 ${
+                className={`p-4 rounded-lg transition-all duration-300 shadow-md ${
                   achievement.unlocked
-                    ? "bg-success/10 border-success/30 hover:bg-success/20"
-                    : "bg-muted/30 border-border opacity-60"
+                    ? "bg-success/10 hover:bg-success/20"
+                    : "bg-muted/30 opacity-60"
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -229,7 +229,7 @@ const Profile = () => {
         </Card>
 
         {/* Champion Info */}
-        <Card className="bg-gradient-to-br from-primary/20 to-success/20 border-primary p-6">
+        <Card className="bg-gradient-to-br from-primary/20 to-success/20 p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
           <div className="flex items-center gap-4">
             <Shield className="w-12 h-12 text-primary" />
             <div className="flex-1">
@@ -245,7 +245,7 @@ const Profile = () => {
         </Card>
 
         {/* User Posts Section */}
-        <Card className="bg-card border-border p-6">
+        <Card className="bg-card/60 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <MessageCircle className="w-6 h-6 text-primary" />

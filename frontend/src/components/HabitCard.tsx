@@ -17,10 +17,10 @@ export const HabitCard = ({ habit, userId }: HabitCardProps) => {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      Fitness: "bg-success/20 text-success border-success/50",
-      Learning: "bg-primary/20 text-primary border-primary/50",
-      Wellness: "bg-warning/20 text-warning border-warning/50",
-      Career: "bg-destructive/20 text-destructive border-destructive/50",
+      Fitness: "bg-success/20 text-success",
+      Learning: "bg-primary/20 text-primary",
+      Wellness: "bg-warning/20 text-warning",
+      Career: "bg-destructive/20 text-destructive",
     };
     return colors[category] || "bg-muted text-muted-foreground";
   };
@@ -86,7 +86,7 @@ export const HabitCard = ({ habit, userId }: HabitCardProps) => {
 
   return (
     <Card
-      className={`bg-card border-border p-4 transition-all duration-300 hover:bg-card-hover hover:shadow-card relative ${
+      className={`bg-card/60 backdrop-blur-xl p-4 transition-all duration-300 hover:bg-card-hover shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative ${
         isCompletedToday ? "opacity-90" : ""
       }`}
     >
@@ -148,7 +148,7 @@ export const HabitCard = ({ habit, userId }: HabitCardProps) => {
         {/* Action buttons and streak indicator */}
         <div className="flex items-center gap-2">
           {streak >= 7 && (
-            <Badge variant="secondary" className="bg-warning/20 text-warning border-warning/50">
+            <Badge variant="secondary" className="bg-warning/20 text-warning shadow-md">
               🔥 Hot Streak!
             </Badge>
           )}

@@ -9,7 +9,7 @@ interface StatsBarProps {
 
 export const StatsBar = ({ icon, label, value, suffix }: StatsBarProps) => {
   return (
-    <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border transition-all duration-300 hover:bg-muted/50">
+    <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg shadow-md transition-all duration-300 hover:bg-muted/50 hover:shadow-lg">
       <div className="flex-shrink-0">{icon}</div>
       <div className="flex-1">
         <div className="text-sm text-muted-foreground">{label}</div>

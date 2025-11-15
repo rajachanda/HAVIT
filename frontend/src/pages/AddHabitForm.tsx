@@ -451,7 +451,7 @@ const AddHabitForm = () => {
         return (
           <div className="space-y-6 animate-in slide-in-from-right duration-300">
             {/* Preview Card */}
-            <Card className="bg-gradient-to-br from-primary/20 to-success/20 border-primary p-6">
+            <Card className="bg-gradient-to-br from-primary/20 to-success/20 p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
               <div className="flex items-start gap-4">
                 <div className="text-5xl">
                   {categories.find(c => c.value === formData.category)?.emoji}
@@ -481,7 +481,7 @@ const AddHabitForm = () => {
             </Card>
 
             {/* Motivation */}
-            <Card className="bg-card border-border p-6">
+            <Card className="bg-card/60 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
               <h4 className="font-semibold mb-2 flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-primary" />
                 Your Why
@@ -490,7 +490,7 @@ const AddHabitForm = () => {
             </Card>
 
             {/* Details */}
-            <Card className="bg-card border-border p-6">
+            <Card className="bg-card/60 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
               <h4 className="font-semibold mb-3">Details</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -513,7 +513,7 @@ const AddHabitForm = () => {
             </Card>
 
             {/* Character Reaction */}
-            <Card className="bg-primary/10 border-primary/20 p-6">
+            <Card className="bg-primary/10 p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
               <div className="flex items-start gap-3">
                 <Sparkles className="w-8 h-8 text-primary mt-1 animate-pulse" />
                 <div>
@@ -580,7 +580,7 @@ const AddHabitForm = () => {
         </div>
 
         {/* Sage Comment */}
-        <Card className="mb-8 p-4 bg-primary/10 border-primary/20">
+        <Card className="mb-8 p-4 bg-primary/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
           <div className="flex items-start gap-3">
             <Sparkles className="w-6 h-6 text-primary mt-1" />
             <div>

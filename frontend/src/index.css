@@ -8,61 +8,61 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Havit Dark Theme - Professional Gaming Aesthetic */
-    --background: 222 47% 5%;
-    --background-darker: 222 47% 2%;
-    --foreground: 210 40% 95%;
+    /* Custom Color Palette Theme */
+    --background: 210 22% 16%;        /* #222831 - Dark charcoal background */
+    --background-darker: 210 22% 12%; /* Darker variant */
+    --foreground: 0 0% 100%;          /* White - Text color */
 
-    --card: 215 25% 12%;
-    --card-hover: 215 25% 16%;
-    --card-foreground: 210 40% 95%;
+    --card: 210 10% 24%;              /* #393E46 - Card background */
+    --card-hover: 210 10% 28%;        /* Lighter on hover */
+    --card-foreground: 0 0% 100%;     /* White - Text on cards */
 
-    --popover: 215 25% 12%;
-    --popover-foreground: 210 40% 95%;
+    --popover: 210 10% 24%;           /* #393E46 */
+    --popover-foreground: 0 0% 100%;  /* White */
 
-    /* Indigo brand colors */
-    --primary: 239 84% 67%;
-    --primary-dark: 243 75% 59%;
-    --primary-light: 239 84% 75%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Using card color */
+    --primary: 210 10% 24%;           /* #393E46 - Primary actions */
+    --primary-dark: 210 10% 20%;      /* Darker variant */
+    --primary-light: 210 10% 28%;     /* Lighter variant */
+    --primary-foreground: 0 0% 100%;  /* White - Text on primary */
 
-    --secondary: 215 20% 65%;
-    --secondary-foreground: 222 47% 5%;
+    --secondary: 0 0% 85%;            /* Light gray - Secondary */
+    --secondary-foreground: 210 22% 16%; /* Dark text on secondary */
 
-    --muted: 215 16% 20%;
-    --muted-foreground: 217 10% 60%;
+    --muted: 210 10% 28%;
+    --muted-foreground: 0 0% 70%;     /* Light gray for muted text */
 
-    --accent: 239 84% 67%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 100%;              /* White - Accent color */
+    --accent-foreground: 210 22% 16%; /* Dark text on accent */
 
-    /* Success/XP Emerald */
+    /* Success/XP - Keep green for positive actions */
     --success: 142 71% 45%;
     --success-glow: 142 71% 55%;
-    --success-foreground: 210 40% 98%;
+    --success-foreground: 0 0% 100%;
 
-    /* Warning/Challenge Amber */
-    --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 5%;
+    /* Warning/Challenge - Using light gray */
+    --warning: 0 0% 75%;              /* Light gray for warnings */
+    --warning-foreground: 210 22% 16%;
 
     /* Error/Broken Streak */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 215 20% 25%;
-    --input: 215 20% 20%;
-    --ring: 239 84% 67%;
+    --border: 0 0% 60%;               /* Gray borders */
+    --input: 210 10% 24%;             /* #393E46 for inputs */
+    --ring: 0 0% 100%;                /* White ring color */
 
     --radius: 0.75rem;
 
     /* Gradients */
-    --gradient-victory: linear-gradient(135deg, hsl(239 84% 67%), hsl(277 84% 67%));
+    --gradient-victory: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 85%));
     --gradient-xp: linear-gradient(135deg, hsl(142 71% 45%), hsl(173 80% 40%));
-    --gradient-challenge: linear-gradient(135deg, hsl(38 92% 50%), hsl(330 81% 60%));
+    --gradient-challenge: linear-gradient(135deg, hsl(0 0% 85%), hsl(0 0% 100%));
 
     /* Shadows */
-    --shadow-primary: 0 10px 40px -10px hsl(239 84% 67% / 0.3);
+    --shadow-primary: 0 10px 40px -10px hsl(210 10% 24% / 0.5);
     --shadow-success: 0 10px 30px -10px hsl(142 71% 45% / 0.3);
-    --shadow-card: 0 4px 20px -4px hsl(222 47% 2% / 0.5);
+    --shadow-card: 0 4px 20px -4px hsl(210 22% 10% / 0.5);
 
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

@@ -344,7 +344,7 @@ const UniversalQuestions = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {showConfetti && <Confetti width={width} height={height} recycle={false} numberOfPieces={500} />}
       
-      <Card className="w-full max-w-3xl bg-card border-border p-8">
+      <Card className="w-full max-w-3xl bg-card/60 backdrop-blur-xl p-8 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">

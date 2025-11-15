@@ -116,7 +116,7 @@ export default function PostCard({ post, onPostDeleted, onPostUpdated }: PostCar
   };
 
   return (
-    <Card className="bg-card border-border p-6 shadow-card">
+    <Card className="bg-card/60 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
       {/* Post Header */}
       <div className="flex items-start gap-3 mb-4">
         {/* User Avatar */}
@@ -219,7 +219,7 @@ export default function PostCard({ post, onPostDeleted, onPostUpdated }: PostCar
 
       {/* Challenge/Achievement Card */}
       {post.type === 'challenge' && (
-        <div className="mb-4 bg-muted rounded-lg p-4 border border-primary">
+        <div className="mb-4 bg-muted rounded-lg p-4 shadow-md">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl">💪</span>
             <p className="font-semibold text-foreground">Challenge Post</p>
@@ -234,7 +234,7 @@ export default function PostCard({ post, onPostDeleted, onPostUpdated }: PostCar
       )}
 
       {post.type === 'achievement' && (
-        <div className="mb-4 bg-muted rounded-lg p-4 border border-warning">
+        <div className="mb-4 bg-muted rounded-lg p-4 shadow-md">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl">🏆</span>
             <p className="font-semibold text-foreground">Achievement Unlocked!</p>
@@ -246,7 +246,7 @@ export default function PostCard({ post, onPostDeleted, onPostUpdated }: PostCar
       )}
 
       {post.type === 'milestone' && (
-        <div className="mb-4 bg-muted rounded-lg p-4 border border-success">
+        <div className="mb-4 bg-muted rounded-lg p-4 shadow-md">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl">🎉</span>
             <p className="font-semibold text-foreground">Milestone Reached!</p>
@@ -258,7 +258,7 @@ export default function PostCard({ post, onPostDeleted, onPostUpdated }: PostCar
       )}
 
       {/* Engagement Stats */}
-      <div className="flex items-center gap-6 mb-3 text-sm text-muted-foreground pb-3 border-b border-border">
+      <div className="flex items-center gap-6 mb-3 text-sm text-muted-foreground pb-3">
         <span className={localIsLiked ? 'text-destructive' : ''}>
           ❤️ {localLikes} {localLikes === 1 ? 'Like' : 'Likes'}
         </span>
@@ -310,7 +310,7 @@ export default function PostCard({ post, onPostDeleted, onPostUpdated }: PostCar
 
       {/* Comments Section */}
       {showComments && (
-        <div className="mt-6 pt-6 border-t border-border">
+        <div className="mt-6 pt-6">
           <CommentThread postId={post.id} />
         </div>
       )}

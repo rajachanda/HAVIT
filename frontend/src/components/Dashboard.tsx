@@ -113,7 +113,7 @@ export const Dashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              Welcome back, {userData?.firstName || userData?.username || 'Champion'}! 👋
+              Welcome back, {userData?.firstName || userData?.username || 'Champion'}!
               <RealtimeBadge />
             </h1>
             <p className="text-muted-foreground mt-1">
@@ -152,7 +152,7 @@ export const Dashboard = () => {
         />
 
         {/* Stats Overview */}
-        <Card className="bg-card border-border p-6 shadow-card">
+        <Card className="bg-card/60 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Today's Progress</h2>
             <Badge variant="secondary" className="text-lg px-4 py-2">
@@ -204,7 +204,7 @@ export const Dashboard = () => {
               </Badge>
             </div>
             {habits.length === 0 ? (
-              <Card className="p-8 text-center">
+              <Card className="bg-card/60 backdrop-blur-xl p-8 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
                 <p className="text-muted-foreground mb-4">No habits yet. Create your first habit to get started!</p>
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />

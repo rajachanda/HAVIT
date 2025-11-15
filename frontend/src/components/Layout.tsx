@@ -42,9 +42,10 @@ export const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-background">
       {/* Top Navigation */}
-      <nav className="sticky top-0 z-50 bg-card border-b border-border shadow-card">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
+      <div className="sticky top-0 z-50 px-4 pt-4">
+        <nav className="bg-card/60 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <img 
@@ -52,7 +53,7 @@ export const Layout = ({ children }: LayoutProps) => {
                 alt="Havit Logo" 
                 className="w-10 h-10 object-contain"
               />
-              <span className="text-2xl font-bold text-foreground">Havit</span>
+              <span className="text-2xl font-bold text-accent">Havit</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -63,8 +64,8 @@ export const Layout = ({ children }: LayoutProps) => {
                     variant={isActive(item.path) ? "default" : "ghost"}
                     className={`gap-2 ${
                       isActive(item.path)
-                        ? "bg-primary text-primary-foreground shadow-primary"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "bg-accent text-accent-foreground shadow-lg hover:bg-accent/90"
+                        : "text-secondary hover:text-accent hover:bg-accent/10"
                     }`}
                   >
                     <item.icon className="w-4 h-4" />
@@ -82,6 +83,7 @@ export const Layout = ({ children }: LayoutProps) => {
                 size="icon"
                 onClick={handleLogout}
                 title="Logout"
+                className="text-secondary hover:text-accent hover:bg-accent/10"
               >
                 <LogOut className="w-5 h-5" />
               </Button>
@@ -89,14 +91,14 @@ export const Layout = ({ children }: LayoutProps) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={isActive("/settings") ? "bg-muted" : ""}
+                  className={isActive("/settings") ? "bg-accent/20 text-accent" : "text-secondary hover:text-accent hover:bg-accent/10"}
                 >
                   <Settings className="w-5 h-5" />
                 </Button>
               </Link>
               <Link to="/profile">
-                <Avatar className="cursor-pointer border-2 border-primary hover:border-primary-light transition-colors">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
+                <Avatar className="cursor-pointer shadow-lg hover:shadow-xl transition-all">
+                  <AvatarFallback className="bg-accent text-accent-foreground font-semibold">
                     UA
                   </AvatarFallback>
                 </Avatar>
@@ -113,8 +115,8 @@ export const Layout = ({ children }: LayoutProps) => {
                   size="sm"
                   className={`gap-2 whitespace-nowrap ${
                     isActive(item.path)
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground"
+                      ? "bg-accent text-accent-foreground shadow-lg"
+                      : "text-secondary hover:text-accent hover:bg-accent/10"
                   }`}
                 >
                   <item.icon className="w-4 h-4" />
@@ -125,6 +127,7 @@ export const Layout = ({ children }: LayoutProps) => {
           </div>
         </div>
       </nav>
+      </div>
 
       {/* Main Content */}
       <main>{children}</main>

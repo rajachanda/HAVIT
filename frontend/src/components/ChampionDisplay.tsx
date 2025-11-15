@@ -70,7 +70,7 @@ export const ChampionDisplay = ({
   const levelName = getLevelName(displayLevel);
 
   return (
-    <Card className="bg-card border-border p-6 shadow-card sticky top-8">
+    <Card className="bg-card/60 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] sticky top-8">
       <div className="text-center space-y-4">
         {/* Champion Title */}
         <div className="flex items-center justify-center gap-2">
@@ -82,12 +82,12 @@ export const ChampionDisplay = ({
 
         {/* Champion Visual */}
         <div className="relative">
-          <div className="w-48 h-48 mx-auto bg-gradient-to-br from-primary/20 to-success/20 rounded-full flex items-center justify-center animate-float shadow-primary overflow-hidden relative">
+          <div className="w-48 h-48 mx-auto bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center animate-float shadow-[0_0_60px_-12px_rgba(57,62,70,0.8)] overflow-hidden relative">
             {/* Thunder Animation - contained within circle */}
             {showThunder && onThunderComplete && (
               <ThunderAnimation isActive={showThunder} onComplete={onThunderComplete} />
             )}
-            <div className={`w-40 h-40 bg-card rounded-full flex items-center justify-center border-4 border-primary animate-glow transition-all duration-300 relative z-0 ${isTransitioning ? 'scale-95 opacity-70' : 'scale-100 opacity-100'}`}>
+            <div className={`w-40 h-40 bg-card rounded-full flex items-center justify-center shadow-[0_0_40px_-8px_rgba(57,62,70,0.7)] transition-all duration-300 relative z-0 ${isTransitioning ? 'scale-95 opacity-70' : 'scale-100 opacity-100'}`}>
               {!imageError ? (
                 <img
                   src={characterImage}
@@ -102,7 +102,7 @@ export const ChampionDisplay = ({
           </div>
           
           {/* Level Badge */}
-          <div className="absolute -top-2 -right-2 bg-success shadow-success rounded-full w-16 h-16 flex items-center justify-center border-4 border-background animate-level-up">
+          <div className="absolute -top-2 -right-2 bg-success shadow-[0_0_20px_rgba(34,197,94,0.5)] rounded-full w-16 h-16 flex items-center justify-center shadow-lg animate-level-up">
             <div className="text-center">
               <div className="text-xs text-success-foreground font-medium">Level</div>
               <div className="text-xl font-bold text-success-foreground">{displayLevel}</div>

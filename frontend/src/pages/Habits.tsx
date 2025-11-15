@@ -112,7 +112,7 @@ const Habits = () => {
         />
 
         {/* Filters */}
-        <Card className="bg-card border-border p-4">
+        <Card className="bg-card/60 backdrop-blur-xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -120,7 +120,7 @@ const Habits = () => {
                 placeholder="Search habits..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-background border-border"
+                className="pl-10 bg-background shadow-inner"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -148,23 +148,23 @@ const Habits = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-card border-border p-4 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-4 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <div className="text-3xl font-bold text-foreground">{habits.length}</div>
             <div className="text-sm text-muted-foreground">Total Habits</div>
           </Card>
-          <Card className="bg-card border-border p-4 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-4 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <div className="text-3xl font-bold text-success">
               {completedToday}
             </div>
             <div className="text-sm text-muted-foreground">Completed Today</div>
           </Card>
-          <Card className="bg-card border-border p-4 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-4 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <div className="text-3xl font-bold text-warning">
               {longestStreak}
             </div>
             <div className="text-sm text-muted-foreground">Longest Streak</div>
           </Card>
-          <Card className="bg-card border-border p-4 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-4 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <div className="text-3xl font-bold text-primary">
               {completionRate}%
             </div>
@@ -179,7 +179,7 @@ const Habits = () => {
               <HabitCard key={habit.id} habit={habit} userId={currentUser?.uid || ''} />
             ))
           ) : (
-            <Card className="bg-card border-border p-12 text-center">
+            <Card className="bg-card/60 backdrop-blur-xl p-12 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
               <p className="text-muted-foreground">
                 {habits.length === 0 
                   ? "No habits yet. Create your first habit to get started!" 

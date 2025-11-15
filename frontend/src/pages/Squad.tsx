@@ -46,7 +46,7 @@ const Squad = () => {
         </div>
 
         {/* Squad Overview */}
-        <Card className="bg-gradient-to-br from-primary/20 to-success/20 border-primary p-6 shadow-card">
+        <Card className="bg-gradient-to-br from-primary/20 to-success/20 p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
           <div className="flex items-start justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
@@ -87,7 +87,7 @@ const Squad = () => {
                 className="bg-background/50 rounded-lg p-4 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <Avatar className="w-12 h-12 border-2 border-primary">
+                  <Avatar className="w-12 h-12 shadow-md">
                     <AvatarFallback className="bg-primary text-primary-foreground font-bold">
                       {member.name.charAt(0)}
                     </AvatarFallback>
@@ -115,17 +115,17 @@ const Squad = () => {
 
         {/* Squad Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-card border-border p-6 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-6 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <TrendingUp className="w-8 h-8 text-success mx-auto mb-2" />
             <div className="text-3xl font-bold text-foreground">{squad.progress}</div>
             <div className="text-sm text-muted-foreground">Total Completions</div>
           </Card>
-          <Card className="bg-card border-border p-6 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-6 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <Users className="w-8 h-8 text-primary mx-auto mb-2" />
             <div className="text-3xl font-bold text-foreground">{squad.members.length}</div>
             <div className="text-sm text-muted-foreground">Active Members</div>
           </Card>
-          <Card className="bg-card border-border p-6 text-center">
+          <Card className="bg-card/60 backdrop-blur-xl p-6 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
             <Target className="w-8 h-8 text-warning mx-auto mb-2" />
             <div className="text-3xl font-bold text-foreground">#{squad.rank}</div>
             <div className="text-sm text-muted-foreground">Global Rank</div>
@@ -139,7 +139,7 @@ const Squad = () => {
             {otherSquads.map((otherSquad, index) => (
               <Card
                 key={index}
-                className="bg-card border-border p-4 hover:bg-card-hover transition-all duration-300"
+                className="bg-card/60 backdrop-blur-xl p-4 hover:bg-card-hover transition-all duration-300 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -168,7 +168,7 @@ const Squad = () => {
         </div>
 
         {/* Join Squad CTA */}
-        <Card className="bg-card border-border p-8 text-center">
+        <Card className="bg-card/60 backdrop-blur-xl p-8 text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
           <Users className="w-12 h-12 text-primary mx-auto mb-4" />
           <h3 className="text-xl font-bold text-foreground mb-2">
             Want to Join Another Squad?
