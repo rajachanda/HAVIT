@@ -6,8 +6,10 @@ import { Progress } from "@/components/ui/progress";
 import { Shield, Trophy, Flame, Zap, Award, Calendar, User, Mail, Cake, Users2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUser, useHabits } from "@/hooks/useFirebase";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { data: userData, isLoading: userLoading } = useUser(currentUser?.uid || null);
   const { habits, loading: habitsLoading } = useHabits(currentUser?.uid || null);
@@ -96,7 +98,11 @@ const Profile = () => {
                 )}
               </div>
             </div>
-            <Button size="lg" variant="outline">
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={() => navigate('/profile/edit')}
+            >
               Edit Profile
             </Button>
           </div>

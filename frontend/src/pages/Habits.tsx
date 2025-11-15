@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ interface Habit {
 }
 
 const Habits = () => {
+  const navigate = useNavigate();
   const [habits, setHabits] = useState<Habit[]>([
     {
       id: "1",
@@ -91,7 +93,11 @@ const Habits = () => {
             <h1 className="text-4xl font-bold text-foreground">All Habits</h1>
             <p className="text-muted-foreground mt-1">Manage and track your daily habits</p>
           </div>
-          <Button size="lg" className="bg-primary hover:bg-primary-dark shadow-primary">
+          <Button 
+            size="lg" 
+            className="bg-primary hover:bg-primary-dark shadow-primary"
+            onClick={() => navigate('/habits/new')}
+          >
             <Plus className="w-5 h-5 mr-2" />
             Create Habit
           </Button>

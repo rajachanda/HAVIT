@@ -55,7 +55,12 @@ export default function Login() {
     setLoading(false);
 
     if (result.success) {
-      navigate('/dashboard');
+      // Check if user needs to complete profile
+      if (result.needsProfileCompletion) {
+        navigate('/complete-profile');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       setError(result.error || 'Failed to sign in with Google');
     }

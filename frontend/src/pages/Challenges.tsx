@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ interface Challenge {
 }
 
 const Challenges = () => {
+  const navigate = useNavigate();
   const [challenges] = useState<Challenge[]>([
     {
       id: "1",
@@ -76,7 +78,11 @@ const Challenges = () => {
               Compete with friends in real-time habit duels
             </p>
           </div>
-          <Button size="lg" className="bg-warning text-warning-foreground hover:bg-warning/90">
+          <Button 
+            size="lg" 
+            className="bg-warning text-warning-foreground hover:bg-warning/90"
+            onClick={() => navigate('/challenges/new')}
+          >
             <Plus className="w-5 h-5 mr-2" />
             New Challenge
           </Button>
@@ -196,7 +202,11 @@ const Challenges = () => {
           <p className="text-muted-foreground mb-4">
             Challenge your friends to build habits together
           </p>
-          <Button size="lg" className="bg-warning text-warning-foreground hover:bg-warning/90">
+          <Button 
+            size="lg" 
+            className="bg-warning text-warning-foreground hover:bg-warning/90"
+            onClick={() => navigate('/challenges/new')}
+          >
             Challenge a Friend
           </Button>
         </Card>

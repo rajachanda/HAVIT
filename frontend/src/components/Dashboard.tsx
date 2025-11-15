@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUser, useHabits } from "@/hooks/useFirebase";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { HabitCard } from "./HabitCard";
 import { StatsBar } from "./StatsBar";
 
 export const Dashboard = () => {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { data: userData, isLoading: userLoading } = useUser(currentUser?.uid || null);
   const { habits, loading: habitsLoading } = useHabits(currentUser?.uid || null);
@@ -114,7 +116,11 @@ export const Dashboard = () => {
               Level {userData?.level || 1} • {userData?.totalXP || 0} XP • {userData?.currentStreak || 0} day streak 🔥
             </p>
           </div>
-          <Button size="lg" className="bg-primary hover:bg-primary-dark">
+          <Button 
+            size="lg" 
+            className="bg-primary hover:bg-primary-dark"
+            onClick={() => navigate('/habits/new')}
+          >
             <Plus className="w-5 h-5 mr-2" />
             New Habit
           </Button>

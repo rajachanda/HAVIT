@@ -21,6 +21,10 @@ import Community from "./pages/Community";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import AddHabitForm from "./pages/AddHabitForm";
+import EditProfile from "./pages/EditProfile";
+import NewChallenge from "./pages/NewChallenge";
+import CompleteProfile from "./pages/CompleteProfile";
 import { ReactNode } from "react";
 
 const queryClient = new QueryClient({
@@ -121,6 +125,14 @@ const App = () => (
               }
             />
             <Route
+              path="/complete-profile"
+              element={
+                <ProtectedRoute>
+                  <CompleteProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/onboarding/universal-questions"
               element={
                 <ProtectedRoute>
@@ -175,12 +187,28 @@ const App = () => (
               }
             />
             <Route
+              path="/habits/new"
+              element={
+                <ProtectedRoute>
+                  <AddHabitForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/challenges"
               element={
                 <ProtectedRoute>
                   <Layout>
                     <Challenges />
                   </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/challenges/new"
+              element={
+                <ProtectedRoute>
+                  <NewChallenge />
                 </ProtectedRoute>
               }
             />
@@ -221,6 +249,14 @@ const App = () => (
                   <Layout>
                     <Profile />
                   </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute>
+                  <EditProfile />
                 </ProtectedRoute>
               }
             />

@@ -28,6 +28,9 @@ export interface UserData {
   username?: string;
   age?: number;
   gender?: string;
+  location?: string;
+  language?: string;
+  avatar?: string;
   chronotype: string;
   motivationType: string;
   dailyTimeAvailable: number;
@@ -46,6 +49,7 @@ export interface UserData {
   currentStreak: number;
   longestStreak: number;
   onboardingCompleted: boolean;
+  needsProfileCompletion?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

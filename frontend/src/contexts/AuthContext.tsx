@@ -24,7 +24,7 @@ interface AuthContextType {
     gender: string;
   }) => Promise<{ success: boolean; error?: string }>;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string; needsProfileCompletion?: boolean }>;
   logout: () => Promise<{ success: boolean; error?: string }>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   clearError: () => void;
@@ -148,9 +148,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const existingUser = await getUser(userCredential.user.uid);
       
       if (!existingUser.success) {
+        // New user - create minimal profile
         await createUser(userCredential.user.uid, {
           email: userCredential.user.email || '',
           firstName: userCredential.user.displayName?.split(' ')[0] || '',
+          lastName: userCredential.user.displayName?.split(' ').slice(1).join(' ') || '',
           chronotype: '',
           motivationType: '',
           dailyTimeAvailable: 0,
@@ -164,12 +166,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
           currentStreak: 0,
           longestStreak: 0,
           onboardingCompleted: false,
+          needsProfileCompletion: true, // Flag for incomplete profile
           createdAt: new Date(),
           updatedAt: new Date(),
         });
+        return { success: true, needsProfileCompletion: true };
+      }
+      
+      // Existing user - check if profile is complete
+      const userData = existingUser.data;
+      const isProfileIncomplete = !userData?.age || !userData?.gender || !userData?.username;
+      
+      if (isProfileIncomplete) {
+        return { success: true, needsProfileCompletion: true };
       }
 
-      return { success: true };
+      return { success: true, needsProfileCompletion: false };
     } catch (err: any) {
       let errorMessage = 'Failed to sign in with Google';
       
