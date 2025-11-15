@@ -27,6 +27,7 @@ export default function CommunityPage() {
   const { posts, loading, loadMore, hasMore, refresh } = usePostsFeed(activeFilter, currentUser?.uid);
   const { results: searchResults, search, loading: searching } = useSearchPosts();
   const { users, loading: usersLoading, refresh: refreshUsers } = useDiscoverUsers(currentUser?.uid || '', 8);
+  const [showAllUsers, setShowAllUsers] = useState(false);
   const { challenges, loading: challengesLoading } = useTrendingChallenges(6);
   const { hashtags } = useTrendingHashtags(10);
 
@@ -192,7 +193,7 @@ export default function CommunityPage() {
               ) : (
                 <>
                   <div className="space-y-2">
-                    {users.slice(0, 4).map((user) => (
+                    {(showAllUsers ? users : users.slice(0, 4)).map((user) => (
                       <UserCard key={user.id} user={user} onFollowChange={refreshUsers} compact />
                     ))}
                   </div>
@@ -200,12 +201,9 @@ export default function CommunityPage() {
                     <Button
                       variant="ghost"
                       className="w-full mt-3 text-primary hover:text-primary-dark hover:bg-muted"
-                      onClick={() => {
-                        // TODO: Navigate to full users page or open modal
-                        console.log('View all users');
-                      }}
+                      onClick={() => setShowAllUsers(prev => !prev)}
                     >
-                      View More
+                      {showAllUsers ? 'Show Less' : 'View More'}
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   )}
