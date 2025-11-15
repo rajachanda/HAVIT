@@ -1,0 +1,135 @@
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import {
+  getUser,
+  getHabits,
+  getPersona,
+  getUserChallenges,
+  getLeaderboard,
+  UserData,
+  Habit,
+  Challenge,
+  LeaderboardEntry,
+} from '@/lib/api';
+
+// ============================================================================
+// USER HOOK
+// ============================================================================
+
+export function useUser(userId: string | null): UseQueryResult<UserData | null, Error> {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const result = await getUser(userId);
+      if (result.success && result.data) {
+        return result.data;
+      }
+      throw new Error(result.error || 'Failed to fetch user');
+    },
+    enabled: !!userId,
+  });
+}
+
+// ============================================================================
+// HABITS HOOK (Real-time)
+// ============================================================================
+
+export function useHabits(userId: string | null) {
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) {
+      setHabits([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const unsubscribe = getHabits(userId, (updatedHabits) => {
+      setHabits(updatedHabits);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [userId]);
+
+  return { habits, loading, error };
+}
+
+// ============================================================================
+// PERSONA HOOK
+// ============================================================================
+
+export function usePersona(userId: string | null): UseQueryResult<UserData['persona'] | null, Error> {
+  return useQuery({
+    queryKey: ['persona', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const result = await getPersona(userId);
+      if (result.success) {
+        return result.data || null;
+      }
+      throw new Error(result.error || 'Failed to fetch persona');
+    },
+    enabled: !!userId,
+  });
+}
+
+// ============================================================================
+// CHALLENGES HOOK (Real-time)
+// ============================================================================
+
+export function useChallenges(userId: string | null) {
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) {
+      setChallenges([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const unsubscribe = getUserChallenges(userId, (updatedChallenges) => {
+      setChallenges(updatedChallenges);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [userId]);
+
+  return { challenges, loading, error };
+}
+
+// ============================================================================
+// LEADERBOARD HOOK
+// ============================================================================
+
+export function useLeaderboard(
+  period: 'daily' | 'weekly' | 'monthly'
+): UseQueryResult<LeaderboardEntry[], Error> {
+  return useQuery({
+    queryKey: ['leaderboard', period],
+    queryFn: async () => {
+      const result = await getLeaderboard(period);
+      if (result.success && result.data) {
+        return result.data;
+      }
+      throw new Error(result.error || 'Failed to fetch leaderboard');
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+}

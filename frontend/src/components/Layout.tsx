@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -10,7 +10,9 @@ import {
   MessageSquare,
   Settings,
   Sparkles,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,9 +20,11 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const navItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: ListChecks, label: "Habits", path: "/habits" },
     { icon: Swords, label: "Challenges", path: "/challenges" },
     { icon: Trophy, label: "Leaderboard", path: "/leaderboard" },
@@ -29,6 +33,11 @@ export const Layout = ({ children }: LayoutProps) => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -63,6 +72,14 @@ export const Layout = ({ children }: LayoutProps) => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
               <Link to="/settings">
                 <Button
                   variant="ghost"

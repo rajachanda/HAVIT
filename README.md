@@ -1,6 +1,151 @@
-# HAVIT - The Only Habit Tracker People Keep Using
+# HAVIT - Gamified Habit Tracking Platform
 
-## Project info
+A modern, gamified habit tracking application with AI-powered coaching, character progression, and social features.
+
+## 🏗️ Project Structure
+
+```
+HAVIT/
+├── frontend/              # React + Vite + TypeScript frontend
+│   ├── src/
+│   │   ├── components/   # UI components
+│   │   ├── pages/        # Route pages
+│   │   ├── contexts/     # React contexts (Auth, etc.)
+│   │   ├── hooks/        # Custom React hooks
+│   │   ├── lib/          # Utilities and Firebase API
+│   │   └── config/       # Firebase client config
+│   ├── public/           # Static assets
+│   └── package.json      # Frontend dependencies
+│
+├── backend/              # Express + Firebase Admin backend
+│   ├── src/
+│   │   ├── routes/       # API routes
+│   │   ├── middleware/   # Auth middleware
+│   │   └── config/       # Firebase Admin config
+│   └── package.json      # Backend dependencies
+│
+└── package.json          # Root scripts to run both
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ or Bun
+- Firebase account with project setup
+- Environment variables configured
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/rajachanda/HAVIT.git
+   cd HAVIT
+   ```
+
+2. **Install all dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+
+   **Frontend** (`frontend/.env.local`):
+   ```env
+   VITE_FIREBASE_API_KEY=your_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your_project_id
+   VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   VITE_FIREBASE_APP_ID=your_app_id
+   VITE_GEMINI_API_KEY=your_gemini_api_key
+   ```
+
+   **Backend** (`backend/.env`):
+   ```env
+   PORT=5000
+   FIREBASE_PROJECT_ID=your_project_id
+   FIREBASE_PRIVATE_KEY_ID=your_private_key_id
+   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+   FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your_project.iam.gserviceaccount.com
+   FIREBASE_CLIENT_ID=your_client_id
+   FRONTEND_URL=http://localhost:8082
+   ```
+
+### Running the Application
+
+**Development mode (runs both frontend and backend):**
+```bash
+npm run dev
+```
+
+This starts:
+- Frontend: `http://localhost:8082`
+- Backend: `http://localhost:5000`
+
+**Run frontend only:**
+```bash
+cd frontend
+npm run dev
+```
+
+**Run backend only:**
+```bash
+cd backend
+npm run dev
+```
+
+## 🎮 Features
+
+### ✅ Implemented
+- **Authentication** - Email/password + Google OAuth
+- **Conversational Onboarding** - 10-question AI chatbot
+- **Character Selection** - 4 archetypes with full customization
+- **Habit Tracking** - Create, complete, delete habits with XP & streaks
+- **Dashboard** - Real-time user stats and progress
+- **Firebase Integration** - Firestore database with real-time sync
+- **Protected Routes** - Secure authentication flow
+
+### 🚧 In Progress
+- Gemini AI integration for persona generation
+- Character preview renderer
+- Habit edit modal
+
+### 📋 Planned
+- Leaderboard with Firebase data
+- Challenges system
+- Squad/Friends features
+- Community feed
+- Firestore security rules
+
+## 🛠️ Tech Stack
+
+**Frontend:**
+- React 18.3.1
+- TypeScript
+- Vite 5.4.19
+- Tailwind CSS
+- shadcn-ui
+- React Router
+- React Query
+- Firebase SDK 9+
+
+**Backend:**
+- Node.js
+- Express
+- Firebase Admin SDK
+- CORS, Helmet, Morgan
+
+**Database:**
+- Firebase Firestore
+- Collections: users, habits, conversationHistory, personas, challenges, leaderboard, friends
+
+## 📚 Documentation
+
+See [FIREBASE_INTEGRATION.md](./FIREBASE_INTEGRATION.md) for detailed Firebase setup and API documentation.
+
+---
+
+## Original Project Info
 
 **URL**: https://lovable.dev/projects/18a65ab3-702d-4389-a954-6c6dcbec8039
 

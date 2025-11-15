@@ -4,9 +4,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Settings as SettingsIcon, Bell, Lock, Palette, User } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Lock, Palette, User, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      toast({
+        title: "Logged out successfully",
+        description: "See you soon!",
+      });
+      navigate("/login");
+    } else {
+      toast({
+        title: "Error",
+        description: result.error || "Failed to logout",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -27,7 +51,7 @@ const Settings = () => {
             <User className="w-6 h-6 text-primary" />
             <h2 className="text-xl font-bold text-foreground">Account Settings</h2>
           </div>
-          <div className="space-y-4">
+          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             <div className="space-y-2">
               <Label htmlFor="name">Display Name</Label>
               <Input id="name" defaultValue="User Alex" className="bg-background" />
@@ -37,6 +61,7 @@ const Settings = () => {
               <Input
                 id="email"
                 type="email"
+                autoComplete="email"
                 defaultValue="alex@rehabit.app"
                 className="bg-background"
               />
@@ -46,12 +71,13 @@ const Settings = () => {
               <Input
                 id="password"
                 type="password"
+                autoComplete="new-password"
                 placeholder="Enter new password"
                 className="bg-background"
               />
             </div>
             <Button className="bg-primary hover:bg-primary-dark">Save Changes</Button>
-          </div>
+          </form>
         </Card>
 
         {/* Notifications */}
@@ -180,6 +206,14 @@ const Settings = () => {
         <Card className="bg-card border-destructive/50 p-6">
           <h2 className="text-xl font-bold text-destructive mb-4">Danger Zone</h2>
           <div className="space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full border-warning text-warning hover:bg-warning/10"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
             <Button variant="outline" className="w-full border-destructive text-destructive hover:bg-destructive/10">
               Reset All Progress
             </Button>

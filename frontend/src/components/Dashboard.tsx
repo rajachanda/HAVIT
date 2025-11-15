@@ -1,4 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUser, useHabits } from "@/hooks/useFirebase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -8,55 +10,23 @@ import { ChampionDisplay } from "./ChampionDisplay";
 import { HabitCard } from "./HabitCard";
 import { StatsBar } from "./StatsBar";
 
-interface Habit {
-  id: string;
-  title: string;
-  category: string;
-  streak: number;
-  completed: boolean;
-  xp: number;
-}
-
 export const Dashboard = () => {
-  const [habits, setHabits] = useState<Habit[]>([
-    {
-      id: "1",
-      title: "Morning Workout",
-      category: "Fitness",
-      streak: 12,
-      completed: false,
-      xp: 15,
-    },
-    {
-      id: "2",
-      title: "Read 30 Minutes",
-      category: "Learning",
-      streak: 8,
-      completed: true,
-      xp: 10,
-    },
-    {
-      id: "3",
-      title: "Meditate",
-      category: "Wellness",
-      streak: 5,
-      completed: false,
-      xp: 10,
-    },
-    {
-      id: "4",
-      title: "Code Practice",
-      category: "Career",
-      streak: 15,
-      completed: true,
-      xp: 15,
-    },
-  ]);
+  const { currentUser } = useAuth();
+  const { data: userData, isLoading: userLoading } = useUser(currentUser?.uid || null);
+  const { habits, loading: habitsLoading } = useHabits(currentUser?.uid || null);
 
-  // Level state (1-9 max for testing)
+  // Level state for testing animations
   const [testLevel, setTestLevel] = useState(1);
   const [showThunder, setShowThunder] = useState(false);
   const prevLevelRef = useRef(1);
+
+  // Update test level when user data loads
+  useEffect(() => {
+    if (userData?.level) {
+      setTestLevel(userData.level);
+      prevLevelRef.current = userData.level;
+    }
+  }, [userData?.level]);
 
   // Calculate XP based on level (for testing)
   const calculateXPForLevel = (level: number) => {
@@ -77,12 +47,6 @@ export const Dashboard = () => {
   };
 
   const xpData = calculateXPForLevel(testLevel);
-
-  const [userStats] = useState({
-    totalStreak: 42,
-    completionRate: 85,
-    championType: "Warrior",
-  });
 
   // Handle level up with animation
   const handleLevelUp = () => {
@@ -107,76 +71,54 @@ export const Dashboard = () => {
     setShowThunder(false);
   };
 
-  const toggleHabit = (id: string) => {
-    setHabits(habits.map(h => 
-      h.id === id ? { ...h, completed: !h.completed } : h
-    ));
-  };
-
-  const completedToday = habits.filter(h => h.completed).length;
+  // Calculate today's habit completions
+  const today = new Date().toISOString().split('T')[0];
+  const completedToday = habits.filter((h) => 
+    h.completions?.some((c) => c.date === today && c.completed)
+  ).length;
   const totalHabits = habits.length;
-  const progressPercent = (completedToday / totalHabits) * 100;
+  const progressPercent = totalHabits > 0 ? (completedToday / totalHabits) * 100 : 0;
+
+  // Calculate real completion rate (all time)
+  const completedHabitsCount = habits.filter((h) => 
+    h.completions?.some((c) => c.completed)
+  ).length;
+  const completionRate = totalHabits > 0 ? Math.round((completedHabitsCount / totalHabits) * 100) : 0;
+
+  // Calculate daily XP earned
+  const dailyXP = habits
+    .filter((h) => h.completions?.some((c) => c.date === today && c.completed))
+    .reduce((sum, h) => sum + h.xpReward, 0);
+
+  if (userLoading || habitsLoading) {
+    return (
+      <div className="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <header className="flex items-center justify-between">
+        {/* Welcome Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-foreground flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-primary animate-pulse" />
-              Havit
+            <h1 className="text-3xl font-bold text-foreground">
+              Welcome back, {userData?.firstName || userData?.username || 'Champion'}! 👋
             </h1>
             <p className="text-muted-foreground mt-1">
-              The Only Habit Tracker People Keep Using
+              Level {userData?.level || 1} • {userData?.totalXP || 0} XP • {userData?.currentStreak || 0} day streak 🔥
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Test Level Counter Button */}
-            <Card className="bg-card border-border p-3 flex items-center gap-3">
-              <div className="text-sm text-muted-foreground">Test Level:</div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleLevelDown}
-                  disabled={testLevel <= 1}
-                  className="h-8 w-8 p-0"
-                >
-                  -
-                </Button>
-                <Badge variant="secondary" className="text-lg px-3 py-1 min-w-[3rem] text-center">
-                  {testLevel}
-                </Badge>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleLevelUp}
-                  disabled={testLevel >= 9}
-                  className="h-8 w-8 p-0"
-                >
-                  +
-                </Button>
-              </div>
-              <Button
-                size="sm"
-                onClick={handleLevelUp}
-                disabled={testLevel >= 9}
-                className="bg-primary hover:bg-primary-dark shadow-primary"
-              >
-                <ArrowUp className="w-4 h-4 mr-1" />
-                Level Up
-              </Button>
-            </Card>
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary-dark shadow-primary transition-all duration-300"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              New Habit
-            </Button>
-          </div>
-        </header>
+          <Button size="lg" className="bg-primary hover:bg-primary-dark">
+            <Plus className="w-5 h-5 mr-2" />
+            New Habit
+          </Button>
+        </div>
 
         {/* Stats Overview */}
         <Card className="bg-card border-border p-6 shadow-card">
@@ -191,18 +133,18 @@ export const Dashboard = () => {
             <StatsBar
               icon={<Flame className="w-5 h-5 text-warning" />}
               label="Streak"
-              value={userStats.totalStreak}
+              value={userData?.currentStreak || 0}
               suffix="days"
             />
             <StatsBar
               icon={<Trophy className="w-5 h-5 text-primary" />}
               label="Level"
-              value={testLevel}
+              value={userData?.level || 1}
             />
             <StatsBar
               icon={<Zap className="w-5 h-5 text-success" />}
               label="Completion"
-              value={userStats.completionRate}
+              value={completionRate}
               suffix="%"
             />
           </div>
@@ -213,9 +155,9 @@ export const Dashboard = () => {
           {/* Champion Display */}
           <div className="lg:col-span-1">
             <ChampionDisplay
-              championType={userStats.championType}
-              level={testLevel}
-              xp={xpData.current}
+              championType={userData?.championArchetype || "Guardian"}
+              level={userData?.level || 1}
+              xp={userData?.totalXP || 0}
               xpToNext={xpData.next}
               showThunder={showThunder}
               onThunderComplete={handleThunderComplete}
@@ -230,13 +172,23 @@ export const Dashboard = () => {
                 {habits.length} Active
               </Badge>
             </div>
-            {habits.map((habit) => (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                onToggle={() => toggleHabit(habit.id)}
-              />
-            ))}
+            {habits.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground mb-4">No habits yet. Create your first habit to get started!</p>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Habit
+                </Button>
+              </Card>
+            ) : (
+              habits.map((habit) => (
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  userId={currentUser?.uid || ''}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
