@@ -250,4 +250,9 @@ All colors MUST be HSL.
   .bg-gradient-radial {
     background: radial-gradient(circle, var(--tw-gradient-stops));
   }
+
+  /* Animation delay utility */
+  .delay-1000 {
+    animation-delay: 1s;
+  }
 }

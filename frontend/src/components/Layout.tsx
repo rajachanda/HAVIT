@@ -9,7 +9,6 @@ import {
   Users,
   MessageSquare,
   Settings,
-  Sparkles,
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -47,7 +46,11 @@ export const Layout = ({ children }: LayoutProps) => {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <Sparkles className="w-7 h-7 text-primary animate-pulse" />
+              <img 
+                src="/Character_Img/Logo.png" 
+                alt="Havit Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <span className="text-2xl font-bold text-foreground">Havit</span>
             </Link>
 
