@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useHabits } from '@/hooks/useFirebase';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Users, Target, Clock, Coins, ChevronRight, ChevronLeft } from 'lucide-react';
-import { collection, getDocs, query, where, limit, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { createChallenge } from '@/services/challengesService';
 import { getRecommendedStakes, canAffordStake, getLevelInfo } from '@/lib/xpSystem';
@@ -112,34 +112,28 @@ export function NewChallengeDialog({ open, onOpenChange }: NewChallengeDialogPro
     return () => clearTimeout(debounce);
   }, [searchQuery, currentUser]);
 
-  // Fetch current user data
+  // Fetch current user data with real-time updates
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!currentUser?.uid) return;
-      
-      try {
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data() as UserData;
-          setCurrentUserData(data);
-          
-          // Set initial stake to first recommended stake
-          if (data.totalXP) {
-            const levelInfo = getLevelInfo(data.totalXP);
-            const stakes = getRecommendedStakes(levelInfo.level, data.totalXP);
-            if (stakes.length > 0) {
-              setSelectedStake(stakes[0]);
-            }
+    if (!currentUser?.uid || !open) return;
+
+    const userRef = doc(db, 'users', currentUser.uid);
+    const unsubscribe = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data() as UserData;
+        setCurrentUserData(data);
+        
+        // Set initial stake to first recommended stake (only on first load)
+        if (data.totalXP && selectedStake === 0) {
+          const levelInfo = getLevelInfo(data.totalXP);
+          const stakes = getRecommendedStakes(levelInfo.level, data.totalXP);
+          if (stakes.length > 0) {
+            setSelectedStake(stakes[0]);
           }
         }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
       }
-    };
+    });
 
-    if (open) {
-      fetchUserData();
-    }
+    return () => unsubscribe();
   }, [currentUser, open]);
 
   const handleCreateChallenge = async () => {

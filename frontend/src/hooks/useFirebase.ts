@@ -50,6 +50,7 @@ export function useUserRealtime(userId: string | null) {
       return;
     }
 
+    console.log('[useUserRealtime] Setting up listener for user:', userId);
     setLoading(true);
     setError(null);
 
@@ -59,20 +60,29 @@ export function useUserRealtime(userId: string | null) {
       (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
+          console.log('[useUserRealtime] User data updated:', {
+            totalXP: data.totalXP,
+            level: data.level,
+            timestamp: new Date().toISOString()
+          });
           setUserData({ ...data, id: docSnap.id } as unknown as UserData);
         } else {
+          console.warn('[useUserRealtime] User document does not exist:', userId);
           setUserData(null);
         }
         setLoading(false);
       },
       (err) => {
-        console.error('Error fetching user data:', err);
+        console.error('[useUserRealtime] Error fetching user data:', err);
         setError(err.message);
         setLoading(false);
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      console.log('[useUserRealtime] Cleaning up listener for user:', userId);
+      unsubscribe();
+    };
   }, [userId]);
 
   return { userData, loading, error };

@@ -14,6 +14,7 @@ import {
   Timestamp,
   Unsubscribe,
   arrayUnion,
+  increment,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 
@@ -253,12 +254,42 @@ export async function completeHabit(
   date: string
 ): Promise<ApiResponse> {
   try {
-    const docRef = doc(db, 'habits', habitId);
-    await updateDoc(docRef, {
+    console.log('[completeHabit] Starting habit completion:', { habitId, date });
+    
+    // Get the habit to find userId and xpReward
+    const habitRef = doc(db, 'habits', habitId);
+    const habitSnap = await getDoc(habitRef);
+    
+    if (!habitSnap.exists()) {
+      console.error('[completeHabit] Habit not found:', habitId);
+      return { success: false, error: 'Habit not found' };
+    }
+    
+    const habitData = habitSnap.data() as Habit;
+    console.log('[completeHabit] Habit data:', {
+      userId: habitData.userId,
+      xpReward: habitData.xpReward,
+      name: habitData.name
+    });
+    
+    // Update habit completion
+    await updateDoc(habitRef, {
       completions: arrayUnion({ date, completed: true }),
     });
-    return { success: true };
+    console.log('[completeHabit] Habit completion updated');
+    
+    // Award XP to user using Firestore increment for atomic update
+    const userRef = doc(db, 'users', habitData.userId);
+    const xpToAdd = habitData.xpReward || 50;
+    
+    await updateDoc(userRef, {
+      totalXP: increment(xpToAdd),
+    });
+    console.log('[completeHabit] User XP updated, added:', xpToAdd);
+    
+    return { success: true, data: { xpGained: xpToAdd } };
   } catch (error: unknown) {
+    console.error('[completeHabit] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to complete habit';
     return { success: false, error: errorMessage };
   }

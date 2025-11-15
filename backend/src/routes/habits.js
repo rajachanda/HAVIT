@@ -182,7 +182,7 @@ router.post('/:habitId/complete', verifyToken, async (req, res) => {
     const xpGain = habitData.xpReward || 50;
 
     await userRef.update({
-      xp: admin.firestore.FieldValue.increment(xpGain),
+      totalXP: admin.firestore.FieldValue.increment(xpGain),
     });
 
     res.json({ 

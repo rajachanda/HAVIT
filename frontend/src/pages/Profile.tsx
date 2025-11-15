@@ -9,6 +9,7 @@ import { useUserRealtime, useHabits } from "@/hooks/useFirebase";
 import { useUserPosts } from "@/hooks/useCommunityFeed";
 import { useNavigate } from "react-router-dom";
 import PostCard from "@/components/PostCard";
+import { useState, useEffect } from "react";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -16,6 +17,20 @@ const Profile = () => {
   const { userData, loading: userLoading } = useUserRealtime(currentUser?.uid || null);
   const { habits, loading: habitsLoading } = useHabits(currentUser?.uid || null);
   const { posts, loading: postsLoading, refresh: refreshPosts } = useUserPosts(currentUser?.uid || '');
+  const [previousXP, setPreviousXP] = useState<number | null>(null);
+  const [showXPChange, setShowXPChange] = useState(false);
+
+  // Track XP changes
+  useEffect(() => {
+    if (userData?.totalXP !== undefined) {
+      if (previousXP !== null && userData.totalXP !== previousXP) {
+        console.log('[Profile] XP Changed!', { from: previousXP, to: userData.totalXP, diff: userData.totalXP - previousXP });
+        setShowXPChange(true);
+        setTimeout(() => setShowXPChange(false), 3000);
+      }
+      setPreviousXP(userData.totalXP);
+    }
+  }, [userData?.totalXP]);
 
   // Calculate stats from real data
   const calculateStats = () => {
@@ -63,8 +78,37 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8 relative">
+      {/* XP Change Notification */}
+      {showXPChange && previousXP !== null && userData?.totalXP !== undefined && (
+        <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-top-5">
+          <Card className="bg-success/20 border-success p-4 shadow-lg">
+            <div className="flex items-center gap-3">
+              <Zap className="w-6 h-6 text-success" />
+              <div>
+                <p className="font-bold text-success">XP Updated!</p>
+                <p className="text-sm text-foreground">
+                  +{userData.totalXP - previousXP} XP • Total: {userData.totalXP}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       <div className="max-w-5xl mx-auto space-y-6">
+        {/* Header with Real-time Badge */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Profile</h1>
+            <p className="text-muted-foreground">View and manage your profile</p>
+          </div>
+          <Badge variant="outline" className="bg-success/10 text-success border-success flex items-center gap-2">
+            <span className="w-2 h-2 bg-success rounded-full animate-pulse"></span>
+            Live
+          </Badge>
+        </div>
+
         {/* Profile Header */}
         <Card className="bg-card border-border p-8 shadow-card">
           <div className="flex flex-col md:flex-row items-center gap-6">

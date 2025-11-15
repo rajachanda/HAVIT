@@ -24,6 +24,20 @@ export const Dashboard = () => {
   const [showThunder, setShowThunder] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const prevLevelRef = useRef(1);
+  const [previousXP, setPreviousXP] = useState<number | null>(null);
+  const [showXPChange, setShowXPChange] = useState(false);
+
+  // Track XP changes
+  useEffect(() => {
+    if (userData?.totalXP !== undefined) {
+      if (previousXP !== null && userData.totalXP !== previousXP) {
+        console.log('[Dashboard] XP Changed!', { from: previousXP, to: userData.totalXP, diff: userData.totalXP - previousXP });
+        setShowXPChange(true);
+        setTimeout(() => setShowXPChange(false), 3000);
+      }
+      setPreviousXP(userData.totalXP);
+    }
+  }, [userData?.totalXP]);
 
   // Update test level when user data loads
   useEffect(() => {
@@ -107,7 +121,24 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8 relative">
+      {/* XP Change Notification */}
+      {showXPChange && previousXP !== null && userData?.totalXP !== undefined && (
+        <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-top-5">
+          <Card className="bg-success/20 border-success p-4 shadow-lg">
+            <div className="flex items-center gap-3">
+              <Zap className="w-6 h-6 text-success animate-pulse" />
+              <div>
+                <p className="font-bold text-success">XP Earned!</p>
+                <p className="text-sm text-foreground">
+                  +{userData.totalXP - previousXP} XP • Total: {userData.totalXP}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Welcome Header */}
         <div className="flex items-center justify-between">
