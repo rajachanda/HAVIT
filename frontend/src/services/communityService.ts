@@ -124,7 +124,6 @@ export const getPosts = async (
       q = query(
         postsRef,
         where('visibility', '==', 'public'),
-        orderBy('timestamp', 'desc'),
         limit(limitCount)
       );
       break;
@@ -137,8 +136,6 @@ export const getPosts = async (
         postsRef,
         where('visibility', '==', 'public'),
         where('timestamp', '>=', Timestamp.fromDate(oneDayAgo)),
-        orderBy('timestamp', 'desc'),
-        orderBy('likes', 'desc'),
         limit(limitCount)
       );
       break;
@@ -148,7 +145,6 @@ export const getPosts = async (
         postsRef,
         where('visibility', '==', 'public'),
         where('type', '==', 'challenge'),
-        orderBy('timestamp', 'desc'),
         limit(limitCount)
       );
       break;
@@ -158,7 +154,6 @@ export const getPosts = async (
         postsRef,
         where('visibility', '==', 'public'),
         where('type', '==', 'achievement'),
-        orderBy('timestamp', 'desc'),
         limit(limitCount)
       );
       break;
@@ -167,7 +162,6 @@ export const getPosts = async (
       q = query(
         postsRef,
         where('visibility', '==', 'public'),
-        orderBy('timestamp', 'desc'),
         limit(limitCount)
       );
   }
@@ -177,13 +171,28 @@ export const getPosts = async (
   }
 
   const snapshot = await getDocs(q);
-  const posts = snapshot.docs.map(doc => {
+  let posts = snapshot.docs.map(doc => {
     const data = doc.data() as Omit<Post, 'id'>;
     return {
       id: doc.id,
       ...data
     } as Post;
   });
+
+  // Sort on client side to avoid composite index requirements
+  switch (filter) {
+    case 'trending':
+      // Sort by likes for trending
+      posts.sort((a, b) => {
+        const likeDiff = b.likes - a.likes;
+        if (likeDiff !== 0) return likeDiff;
+        return b.timestamp.toMillis() - a.timestamp.toMillis();
+      });
+      break;
+    default:
+      // Sort by timestamp for all other cases
+      posts.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
+  }
 
   const lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
 
@@ -248,17 +257,18 @@ export const searchPosts = async (searchQuery: string): Promise<Post[]> => {
       postsRef,
       where('hashtags', 'array-contains', hashtag),
       where('visibility', '==', 'public'),
-      orderBy('timestamp', 'desc'),
       limit(20)
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => {
+    const posts = snapshot.docs.map(doc => {
       const data = doc.data() as Omit<Post, 'id'>;
       return {
         id: doc.id,
         ...data
       } as Post;
     });
+    // Sort by timestamp on client side
+    return posts.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
   }
   
   // Search by username
@@ -269,18 +279,18 @@ export const searchPosts = async (searchQuery: string): Promise<Post[]> => {
       where('username', '>=', username),
       where('username', '<=', username + '\uf8ff'),
       where('visibility', '==', 'public'),
-      orderBy('username'),
-      orderBy('timestamp', 'desc'),
       limit(20)
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => {
+    const posts = snapshot.docs.map(doc => {
       const data = doc.data() as Omit<Post, 'id'>;
       return {
         id: doc.id,
         ...data
       } as Post;
     });
+    // Sort by timestamp on client side
+    return posts.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
   }
 
   // For keyword search, we'd need to implement full-text search with Algolia
@@ -335,15 +345,17 @@ export const getComments = async (postId: string): Promise<Comment[]> => {
   const q = query(
     commentsRef,
     where('postId', '==', postId),
-    where('parentCommentId', '==', null),
-    orderBy('timestamp', 'desc')
+    where('parentCommentId', '==', null)
   );
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({
+  const comments = snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   })) as Comment[];
+  
+  // Sort by timestamp on client side
+  return comments.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
 };
 
 export const getReplies = async (commentIds: string[]): Promise<Comment[]> => {
@@ -513,7 +525,6 @@ export const getUserPosts = async (
   let q = query(
     postsRef,
     where('userId', '==', userId),
-    orderBy('timestamp', 'desc'),
     limit(limitCount)
   );
 
@@ -521,7 +532,6 @@ export const getUserPosts = async (
     q = query(
       postsRef,
       where('userId', '==', userId),
-      orderBy('timestamp', 'desc'),
       startAfter(lastDoc),
       limit(limitCount)
     );
@@ -535,6 +545,9 @@ export const getUserPosts = async (
       ...data
     } as Post;
   });
+
+  // Sort by timestamp on client side
+  posts.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
 
   const lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
 

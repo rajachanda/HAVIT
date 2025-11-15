@@ -1,5 +1,7 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/config/firebase';
 import {
   getUser,
   getHabits,
@@ -13,7 +15,7 @@ import {
 } from '@/lib/api';
 
 // ============================================================================
-// USER HOOK
+// USER HOOK (Real-time)
 // ============================================================================
 
 export function useUser(userId: string | null): UseQueryResult<UserData | null, Error> {
@@ -28,7 +30,52 @@ export function useUser(userId: string | null): UseQueryResult<UserData | null, 
       throw new Error(result.error || 'Failed to fetch user');
     },
     enabled: !!userId,
+    // Refetch on window focus to get latest XP
+    refetchOnWindowFocus: true,
+    // Refetch every 5 seconds to catch XP updates
+    refetchInterval: 5000,
   });
+}
+
+// Real-time user data hook for XP updates
+export function useUserRealtime(userId: string | null) {
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) {
+      setUserData(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const userRef = doc(db, 'users', userId);
+    const unsubscribe = onSnapshot(
+      userRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setUserData({ ...data, id: docSnap.id } as unknown as UserData);
+        } else {
+          setUserData(null);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Error fetching user data:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [userId]);
+
+  return { userData, loading, error };
 }
 
 // ============================================================================

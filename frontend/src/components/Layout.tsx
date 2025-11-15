@@ -13,6 +13,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationBell } from "./NotificationBell";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -72,6 +73,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3">
+              <NotificationBell />
               <Button
                 variant="ghost"
                 size="icon"

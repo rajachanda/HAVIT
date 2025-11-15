@@ -1,68 +1,44 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Swords, Users, Trophy, Calendar, Plus } from "lucide-react";
-
-interface Challenge {
-  id: string;
-  opponent: string;
-  habit: string;
-  duration: number;
-  daysLeft: number;
-  myProgress: number;
-  opponentProgress: number;
-  status: "active" | "won" | "lost";
-}
+import { Swords, Users, Trophy, Calendar, Plus, Timer } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useChallenges, useChallengeStats, useChallenge } from "@/hooks/useChallenges";
+import { Challenge as ChallengeType } from "@/services/challengesService";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Challenges = () => {
   const navigate = useNavigate();
-  const [challenges] = useState<Challenge[]>([
-    {
-      id: "1",
-      opponent: "Sarah K.",
-      habit: "Morning Workout",
-      duration: 14,
-      daysLeft: 7,
-      myProgress: 10,
-      opponentProgress: 8,
-      status: "active",
-    },
-    {
-      id: "2",
-      opponent: "Mike T.",
-      habit: "Read 30 Minutes",
-      duration: 30,
-      daysLeft: 15,
-      myProgress: 12,
-      opponentProgress: 14,
-      status: "active",
-    },
-    {
-      id: "3",
-      opponent: "Alex J.",
-      habit: "Meditate",
-      duration: 7,
-      daysLeft: 0,
-      myProgress: 7,
-      opponentProgress: 5,
-      status: "won",
-    },
-  ]);
+  const { currentUser } = useAuth();
+  const { challenges, loading } = useChallenges(currentUser?.uid || null);
+  const stats = useChallengeStats(challenges);
 
   const getStatusColor = (status: string) => {
-    if (status === "won") return "bg-success/20 text-success border-success/50";
-    if (status === "lost") return "bg-destructive/20 text-destructive border-destructive/50";
+    if (status === "victory") return "bg-success/20 text-success border-success/50";
+    if (status === "defeated") return "bg-destructive/20 text-destructive border-destructive/50";
+    if (status === "tied") return "bg-primary/20 text-primary border-primary/50";
     return "bg-warning/20 text-warning border-warning/50";
   };
 
   const getStatusLabel = (status: string) => {
-    if (status === "won") return "Victory!";
-    if (status === "lost") return "Defeated";
+    if (status === "victory") return "Victory!";
+    if (status === "defeated") return "Defeated";
+    if (status === "tied") return "Tied";
     return "Active";
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading challenges...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">

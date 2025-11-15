@@ -14,7 +14,7 @@ import ConditionalQuestions from "./pages/Onboarding/ConditionalQuestions";
 import ConversationalOnboarding from "./pages/Onboarding/ConversationalOnboarding";
 import CharacterSelect from "./pages/CharacterSelect";
 import Habits from "./pages/Habits";
-import Challenges from "./pages/Challenges";
+import ChallengesPage from "./pages/ChallengesPage";
 import Leaderboard from "./pages/Leaderboard";
 import Squad from "./pages/Squad";
 import Community from "./pages/Community";
@@ -200,7 +200,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <Challenges />
+                    <ChallengesPage />
                   </Layout>
                 </ProtectedRoute>
               }

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUser, useHabits } from "@/hooks/useFirebase";
+import { useUserRealtime, useHabits } from "@/hooks/useFirebase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -11,11 +11,12 @@ import { ChampionDisplay } from "./ChampionDisplay";
 import { HabitCard } from "./HabitCard";
 import { StatsBar } from "./StatsBar";
 import { QuickAddHabit } from "./QuickAddHabit";
+import { RealtimeBadge } from "./RealtimeBadge";
 
 export const Dashboard = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { data: userData, isLoading: userLoading } = useUser(currentUser?.uid || null);
+  const { userData, loading: userLoading } = useUserRealtime(currentUser?.uid || null);
   const { habits, loading: habitsLoading } = useHabits(currentUser?.uid || null);
 
   // Level state for testing animations
@@ -111,8 +112,9 @@ export const Dashboard = () => {
         {/* Welcome Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
               Welcome back, {userData?.firstName || userData?.username || 'Champion'}! 👋
+              <RealtimeBadge />
             </h1>
             <p className="text-muted-foreground mt-1">
               Level {userData?.level || 1} • {userData?.totalXP || 0} XP • {userData?.currentStreak || 0} day streak 🔥

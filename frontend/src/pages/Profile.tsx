@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Shield, Trophy, Flame, Zap, Award, Calendar, User, Mail, Cake, Users2, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUser, useHabits } from "@/hooks/useFirebase";
+import { useUserRealtime, useHabits } from "@/hooks/useFirebase";
 import { useUserPosts } from "@/hooks/useCommunityFeed";
 import { useNavigate } from "react-router-dom";
 import PostCard from "@/components/PostCard";
@@ -13,7 +13,7 @@ import PostCard from "@/components/PostCard";
 const Profile = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { data: userData, isLoading: userLoading } = useUser(currentUser?.uid || null);
+  const { userData, loading: userLoading } = useUserRealtime(currentUser?.uid || null);
   const { habits, loading: habitsLoading } = useHabits(currentUser?.uid || null);
   const { posts, loading: postsLoading, refresh: refreshPosts } = useUserPosts(currentUser?.uid || '');
 
