@@ -10,32 +10,64 @@ export interface LevelInfo {
 }
 
 // XP required for each level (exponential growth)
+// Level 1 requires 1000 XP, then exponentially increases
+// Formula: baseXP * (multiplier ^ (level - 1))
+const BASE_XP = 1000;
+const MULTIPLIER = 1.6; // Exponential multiplier for difficulty
+
 export const getXPForLevel = (level: number): number => {
-  // Formula: baseXP * (level ^ 1.5)
-  const baseXP = 100;
-  return Math.floor(baseXP * Math.pow(level, 1.5));
+  if (level <= 1) return BASE_XP;
+  // Level 1: 1000, Level 2: 1600, Level 3: 2560, Level 4: 4096, etc.
+  return Math.floor(BASE_XP * Math.pow(MULTIPLIER, level - 1));
+};
+
+// Calculate cumulative XP needed to reach a level
+export const getCumulativeXPForLevel = (level: number): number => {
+  if (level <= 1) return 0;
+  let cumulative = 0;
+  for (let i = 1; i < level; i++) {
+    cumulative += getXPForLevel(i);
+  }
+  return cumulative;
 };
 
 // Calculate level from total XP
 export const calculateLevel = (totalXP: number): number => {
-  let level = 1;
-  let xpNeeded = 0;
+  if (totalXP < 0) return 1;
   
-  while (xpNeeded <= totalXP) {
+  let level = 1;
+  let cumulativeXP = 0;
+  
+  // Max level is 9
+  while (level < 9 && cumulativeXP + getXPForLevel(level) <= totalXP) {
+    cumulativeXP += getXPForLevel(level);
     level++;
-    xpNeeded += getXPForLevel(level);
   }
   
-  return Math.max(1, level - 1);
+  return Math.min(level, 9); // Cap at level 9
 };
 
 // Get detailed level information
 export const getLevelInfo = (totalXP: number): LevelInfo => {
   const level = calculateLevel(totalXP);
-  const xpForCurrentLevel = level === 1 ? 0 : Array.from({ length: level }, (_, i) => getXPForLevel(i + 1)).reduce((a, b) => a + b, 0);
-  const xpForNextLevel = getXPForLevel(level + 1);
+  const xpForCurrentLevel = getCumulativeXPForLevel(level);
+  
+  // If at max level, show progress within the level
+  if (level >= 9) {
+    const xpForLevel9 = getXPForLevel(9);
+    const currentXP = totalXP - xpForCurrentLevel;
+    return {
+      level: 9,
+      currentXP: Math.min(currentXP, xpForLevel9),
+      xpForNextLevel: xpForLevel9,
+      xpProgress: 100, // Max level reached
+      totalXP
+    };
+  }
+  
+  const xpForNextLevel = getXPForLevel(level);
   const currentXP = totalXP - xpForCurrentLevel;
-  const xpProgress = (currentXP / xpForNextLevel) * 100;
+  const xpProgress = Math.min((currentXP / xpForNextLevel) * 100, 100);
   
   return {
     level,

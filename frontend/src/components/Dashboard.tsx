@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useXP } from "@/contexts/XPContext";
 import { useUserRealtime, useHabits } from "@/hooks/useFirebase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,74 +17,39 @@ import { RealtimeBadge } from "./RealtimeBadge";
 export const Dashboard = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { totalXP, levelInfo, loading: xpLoading } = useXP();
   const { userData, loading: userLoading } = useUserRealtime(currentUser?.uid || null);
   const { habits, loading: habitsLoading } = useHabits(currentUser?.uid || null);
 
-  // Level state for testing animations
-  const [testLevel, setTestLevel] = useState(1);
   const [showThunder, setShowThunder] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
-  const prevLevelRef = useRef(1);
+  const prevLevelRef = useRef(levelInfo?.level || 1);
   const [previousXP, setPreviousXP] = useState<number | null>(null);
   const [showXPChange, setShowXPChange] = useState(false);
 
-  // Track XP changes
+  // Track XP changes and level ups
   useEffect(() => {
-    if (userData?.totalXP !== undefined) {
-      if (previousXP !== null && userData.totalXP !== previousXP) {
-        console.log('[Dashboard] XP Changed!', { from: previousXP, to: userData.totalXP, diff: userData.totalXP - previousXP });
+    if (totalXP !== undefined && totalXP !== null) {
+      if (previousXP !== null && totalXP !== previousXP) {
+        const xpGained = totalXP - previousXP;
+        console.log('[Dashboard] XP Changed!', { from: previousXP, to: totalXP, diff: xpGained });
         setShowXPChange(true);
         setTimeout(() => setShowXPChange(false), 3000);
       }
-      setPreviousXP(userData.totalXP);
+      setPreviousXP(totalXP);
     }
-  }, [userData?.totalXP]);
+  }, [totalXP, previousXP]);
 
-  // Update test level when user data loads
+  // Track level changes for animation
   useEffect(() => {
-    if (userData?.level) {
-      setTestLevel(userData.level);
-      prevLevelRef.current = userData.level;
-    }
-  }, [userData?.level]);
-
-  // Calculate XP based on level (for testing)
-  const calculateXPForLevel = (level: number) => {
-    // XP progression: each level needs more XP
-    // Level 1: 0-100, Level 2: 100-250, Level 3: 250-450, etc.
-    const xpRanges: Record<number, { current: number; next: number }> = {
-      1: { current: 50, next: 100 },
-      2: { current: 150, next: 250 },
-      3: { current: 300, next: 450 },
-      4: { current: 500, next: 700 },
-      5: { current: 750, next: 1000 },
-      6: { current: 1100, next: 1400 },
-      7: { current: 1500, next: 1900 },
-      8: { current: 2000, next: 2500 },
-      9: { current: 2800, next: 3000 }, // Max level
-    };
-    return xpRanges[level] || { current: 0, next: 100 };
-  };
-
-  const xpData = calculateXPForLevel(testLevel);
-
-  // Handle level up with animation
-  const handleLevelUp = () => {
-    if (testLevel < 9) {
-      prevLevelRef.current = testLevel;
-      setTestLevel((prev) => prev + 1);
+    if (levelInfo?.level && levelInfo.level > prevLevelRef.current) {
+      console.log('[Dashboard] Level Up!', { from: prevLevelRef.current, to: levelInfo.level });
       setShowThunder(true);
     }
-  };
-
-  // Handle level down (for testing)
-  const handleLevelDown = () => {
-    if (testLevel > 1) {
-      prevLevelRef.current = testLevel;
-      setTestLevel((prev) => prev - 1);
-      // No animation for level down
+    if (levelInfo?.level) {
+      prevLevelRef.current = levelInfo.level;
     }
-  };
+  }, [levelInfo?.level]);
 
   // Reset animation
   const handleThunderComplete = () => {
@@ -109,7 +75,7 @@ export const Dashboard = () => {
     .filter((h) => h.completions?.some((c) => c.date === today && c.completed))
     .reduce((sum, h) => sum + h.xpReward, 0);
 
-  if (userLoading || habitsLoading) {
+  if (userLoading || habitsLoading || xpLoading) {
     return (
       <div className="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
         <div className="text-center">
@@ -123,7 +89,7 @@ export const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8 relative">
       {/* XP Change Notification */}
-      {showXPChange && previousXP !== null && userData?.totalXP !== undefined && (
+      {showXPChange && previousXP !== null && totalXP !== undefined && (
         <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-top-5">
           <Card className="bg-success/20 border-success p-4 shadow-lg">
             <div className="flex items-center gap-3">
@@ -131,7 +97,7 @@ export const Dashboard = () => {
               <div>
                 <p className="font-bold text-success">XP Earned!</p>
                 <p className="text-sm text-foreground">
-                  +{userData.totalXP - previousXP} XP • Total: {userData.totalXP}
+                  +{totalXP - previousXP} XP • Total: {totalXP}
                 </p>
               </div>
             </div>
@@ -148,7 +114,7 @@ export const Dashboard = () => {
               <RealtimeBadge />
             </h1>
             <p className="text-muted-foreground mt-1">
-              Level {userData?.level || 1} • {userData?.totalXP || 0} XP • {userData?.currentStreak || 0} day streak 🔥
+              Level {levelInfo?.level || 1} • {totalXP || 0} XP • {userData?.currentStreak || 0} day streak 🔥
             </p>
           </div>
           <div className="flex gap-2">
@@ -201,7 +167,7 @@ export const Dashboard = () => {
             <StatsBar
               icon={<Trophy className="w-5 h-5 text-primary" />}
               label="Level"
-              value={userData?.level || 1}
+              value={levelInfo?.level || 1}
             />
             <StatsBar
               icon={<Zap className="w-5 h-5 text-success" />}
@@ -218,9 +184,11 @@ export const Dashboard = () => {
           <div className="lg:col-span-1">
             <ChampionDisplay
               championType={userData?.championArchetype || "Guardian"}
-              level={userData?.level || 1}
-              xp={userData?.totalXP || 0}
-              xpToNext={xpData.next}
+              level={levelInfo?.level || 1}
+              xp={levelInfo?.currentXP || 0}
+              xpToNext={levelInfo?.xpForNextLevel || 1000}
+              totalXP={totalXP || 0}
+              userName={userData?.firstName || userData?.username || undefined}
               showThunder={showThunder}
               onThunderComplete={handleThunderComplete}
             />

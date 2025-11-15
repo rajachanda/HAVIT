@@ -17,6 +17,7 @@ import {
   increment,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
+import { calculateLevel } from '@/lib/xpSystem';
 
 // ============================================================================
 // TYPES
@@ -282,12 +283,21 @@ export async function completeHabit(
     const userRef = doc(db, 'users', habitData.userId);
     const xpToAdd = habitData.xpReward || 50;
     
+    // Get current totalXP to calculate new level
+    const userSnap = await getDoc(userRef);
+    const currentTotalXP = userSnap.exists() ? (userSnap.data().totalXP || 0) : 0;
+    const newTotalXP = currentTotalXP + xpToAdd;
+    
+    // Calculate new level dynamically from totalXP
+    const newLevel = calculateLevel(newTotalXP);
+    
     await updateDoc(userRef, {
       totalXP: increment(xpToAdd),
+      level: newLevel, // Update level based on new XP
     });
-    console.log('[completeHabit] User XP updated, added:', xpToAdd);
+    console.log('[completeHabit] User XP updated, added:', xpToAdd, 'New level:', newLevel);
     
-    return { success: true, data: { xpGained: xpToAdd } };
+    return { success: true, data: { xpGained: xpToAdd, newLevel } };
   } catch (error: unknown) {
     console.error('[completeHabit] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to complete habit';
