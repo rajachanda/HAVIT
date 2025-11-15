@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from '@/contexts/AuthContext';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,66 +18,82 @@ interface LeaderboardUser {
 
 const Leaderboard = () => {
   const [timeframe, setTimeframe] = useState<"daily" | "weekly" | "alltime">("weekly");
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
 
-  const leaderboard: LeaderboardUser[] = [
-    {
-      rank: 1,
-      name: "Jordan M.",
-      level: 28,
-      xp: 2840,
-      streak: 45,
-      champion: "Warrior",
-    },
-    {
-      rank: 2,
-      name: "Emma S.",
-      level: 25,
-      xp: 2500,
-      streak: 38,
-      champion: "Mage",
-    },
-    {
-      rank: 3,
-      name: "Alex P.",
-      level: 23,
-      xp: 2300,
-      streak: 32,
-      champion: "Rogue",
-    },
-    {
-      rank: 4,
-      name: "Chris L.",
-      level: 21,
-      xp: 2100,
-      streak: 28,
-      champion: "Guardian",
-    },
-    {
-      rank: 5,
-      name: "You",
-      level: 12,
-      xp: 740,
-      streak: 42,
-      champion: "Warrior",
-      isUser: true,
-    },
-    {
-      rank: 6,
-      name: "Sam K.",
-      level: 18,
-      xp: 1800,
-      streak: 25,
-      champion: "Mage",
-    },
-    {
-      rank: 7,
-      name: "Taylor R.",
-      level: 16,
-      xp: 1600,
-      streak: 22,
-      champion: "Rogue",
-    },
-  ];
+  const { currentUser } = useAuth();
+
+  useEffect(() => {
+    // Dynamically load leaderboard data. Prefer explicit leaderboard collection
+    // (leaderboard/{period}/users) if it exists (server-maintained). Fall back
+    // to ordering `users` by `totalXP` for all-time/when period collection is empty.
+    let unsubscribe: (() => void) | null = null;
+
+    const load = async () => {
+      try {
+        const {
+          collection,
+          query,
+          orderBy,
+          limit,
+          onSnapshot,
+          getDocs,
+          doc,
+        } = await import('firebase/firestore');
+        const { db } = await import('@/config/firebase');
+
+        // First try server-maintained leaderboard collection for timeframe
+        const leaderboardRef = collection(db, 'leaderboard', timeframe, 'users');
+        const q = query(leaderboardRef, orderBy('totalXP', 'desc'), limit(50));
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+          // Subscribe to leaderboards collection updates
+          unsubscribe = onSnapshot(q, (snapshot) => {
+            const users: LeaderboardUser[] = snapshot.docs.map((d, i) => {
+              const data: any = d.data();
+              return {
+                rank: i + 1,
+                name: data.username || data.firstName || data.displayName || 'Unknown',
+                level: data.level || 1,
+                xp: data.totalXP || 0,
+                streak: data.currentStreak || 0,
+                champion: data.championArchetype || data.champion || '',
+              } as LeaderboardUser;
+            });
+            setLeaderboard(users);
+          });
+          return;
+        }
+
+        // Fallback: query users collection ordered by totalXP
+        const usersRef = collection(db, 'users');
+        const usersQ = query(usersRef, orderBy('totalXP', 'desc'), limit(50));
+        unsubscribe = onSnapshot(usersQ, (snapshot) => {
+          const users: LeaderboardUser[] = snapshot.docs.map((d, i) => {
+            const data: any = d.data();
+            return {
+              rank: i + 1,
+              name: data.username || data.firstName || data.displayName || 'Unknown',
+              level: data.level || 1,
+              xp: data.totalXP || 0,
+              streak: data.currentStreak || 0,
+              champion: data.championArchetype || data.champion || '',
+              isUser: currentUser ? d.id === currentUser.uid : false,
+            } as LeaderboardUser;
+          });
+          setLeaderboard(users);
+        });
+      } catch (err) {
+        console.error('Error loading leaderboard:', err);
+      }
+    };
+
+    load();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [timeframe]);
 
   const getRankIcon = (rank: number) => {
     if (rank === 1)
@@ -130,55 +147,54 @@ const Leaderboard = () => {
         </div>
 
         {/* Top 3 Podium */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {/* 2nd Place */}
-          <Card className="bg-card border-border p-6 text-center transform translate-y-6">
-            <Avatar className="w-16 h-16 mx-auto mb-3 border-2 border-muted-foreground">
-              <AvatarFallback className="text-lg font-bold bg-muted">
-                {leaderboard[1].name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <Medal className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-            <h3 className="font-bold text-foreground">{leaderboard[1].name}</h3>
-            <p className="text-sm text-muted-foreground">{leaderboard[1].champion}</p>
-            <div className="text-2xl font-bold text-primary mt-2">
-              {leaderboard[1].xp} XP
-            </div>
-          </Card>
+        {leaderboard.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading leaderboard...</p>
+          </div>
+        ) : (
+          (() => {
+            const p0 = leaderboard[0] || { name: '—', xp: 0, champion: '', streak: 0 };
+            const p1 = leaderboard[1] || { name: '—', xp: 0, champion: '', streak: 0 };
+            const p2 = leaderboard[2] || { name: '—', xp: 0, champion: '', streak: 0 };
+            return (
+              <div className="grid grid-cols-3 gap-4 mb-8">
+                {/* 2nd Place */}
+                <Card className="bg-card border-border p-6 text-center transform translate-y-6">
+                  <Avatar className="w-16 h-16 mx-auto mb-3 border-2 border-muted-foreground">
+                    <AvatarFallback className="text-lg font-bold bg-muted">{p1.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <Medal className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                  <h3 className="font-bold text-foreground">{p1.name}</h3>
+                  <p className="text-sm text-muted-foreground">{p1.champion}</p>
+                  <div className="text-2xl font-bold text-primary mt-2">{p1.xp} XP</div>
+                </Card>
 
-          {/* 1st Place */}
-          <Card className="bg-gradient-to-br from-warning/20 to-primary/20 border-warning p-6 text-center shadow-primary">
-            <Avatar className="w-20 h-20 mx-auto mb-3 border-4 border-warning">
-              <AvatarFallback className="text-xl font-bold bg-warning text-warning-foreground">
-                {leaderboard[0].name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <Crown className="w-10 h-10 text-warning mx-auto mb-2 animate-pulse" />
-            <h3 className="font-bold text-foreground text-lg">{leaderboard[0].name}</h3>
-            <p className="text-sm text-muted-foreground">{leaderboard[0].champion}</p>
-            <div className="text-3xl font-bold text-warning mt-2">
-              {leaderboard[0].xp} XP
-            </div>
-            <Badge variant="secondary" className="mt-2">
-              🔥 {leaderboard[0].streak} day streak
-            </Badge>
-          </Card>
+                {/* 1st Place */}
+                <Card className="bg-gradient-to-br from-warning/20 to-primary/20 border-warning p-6 text-center shadow-primary">
+                  <Avatar className="w-20 h-20 mx-auto mb-3 border-4 border-warning">
+                    <AvatarFallback className="text-xl font-bold bg-warning text-warning-foreground">{p0.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <Crown className="w-10 h-10 text-warning mx-auto mb-2 animate-pulse" />
+                  <h3 className="font-bold text-foreground text-lg">{p0.name}</h3>
+                  <p className="text-sm text-muted-foreground">{p0.champion}</p>
+                  <div className="text-3xl font-bold text-warning mt-2">{p0.xp} XP</div>
+                  <Badge variant="secondary" className="mt-2">🔥 {p0.streak} day streak</Badge>
+                </Card>
 
-          {/* 3rd Place */}
-          <Card className="bg-card border-border p-6 text-center transform translate-y-6">
-            <Avatar className="w-16 h-16 mx-auto mb-3 border-2 border-warning">
-              <AvatarFallback className="text-lg font-bold bg-muted">
-                {leaderboard[2].name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <Medal className="w-8 h-8 text-warning mx-auto mb-2" />
-            <h3 className="font-bold text-foreground">{leaderboard[2].name}</h3>
-            <p className="text-sm text-muted-foreground">{leaderboard[2].champion}</p>
-            <div className="text-2xl font-bold text-primary mt-2">
-              {leaderboard[2].xp} XP
-            </div>
-          </Card>
-        </div>
+                {/* 3rd Place */}
+                <Card className="bg-card border-border p-6 text-center transform translate-y-6">
+                  <Avatar className="w-16 h-16 mx-auto mb-3 border-2 border-warning">
+                    <AvatarFallback className="text-lg font-bold bg-muted">{p2.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <Medal className="w-8 h-8 text-warning mx-auto mb-2" />
+                  <h3 className="font-bold text-foreground">{p2.name}</h3>
+                  <p className="text-sm text-muted-foreground">{p2.champion}</p>
+                  <div className="text-2xl font-bold text-primary mt-2">{p2.xp} XP</div>
+                </Card>
+              </div>
+            );
+          })()
+        )}
 
         {/* Full Rankings */}
         <div className="space-y-2">

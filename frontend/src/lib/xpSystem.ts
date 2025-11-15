@@ -116,20 +116,20 @@ export const getMaxStakeForLevel = (level: number, totalXP: number): number => {
 export const getRecommendedStakes = (level: number, totalXP: number): number[] => {
   const min = getMinStakeForLevel(level);
   const max = getMaxStakeForLevel(level, totalXP);
-  
-  if (max < min) return [];
-  
-  const stakes = [];
-  const increment = Math.floor((max - min) / 3);
-  
-  stakes.push(min);
-  if (increment > 0) {
-    stakes.push(min + increment);
-    stakes.push(min + increment * 2);
-    stakes.push(max);
-  }
-  
-  return stakes.filter((stake, index, self) => self.indexOf(stake) === index).sort((a, b) => a - b);
+
+  // Desired behaviour now: return three progressive options based on the user's
+  // total XP: 50%, 75%, and 100% (rounded). These values adapt to the user's
+  // respective XP and provide progressive choices (low, mid, high).
+  // We compute fractional values from totalXP, clamp them to at least 1,
+  // deduplicate and sort. This prioritizes user-relative stakes over strict
+  // level-based min/max so users with small balances see meaningful options.
+  const fractions = [0.5, 0.75, 1.0];
+
+  const candidates = fractions
+    .map((f) => Math.max(1, Math.ceil(totalXP * f)))
+    .map((v) => Math.max(1, Math.min(v, Math.max(1, Math.floor(totalXP)))));
+
+  return Array.from(new Set(candidates)).sort((a, b) => a - b);
 };
 
 // Check if user can afford stake
