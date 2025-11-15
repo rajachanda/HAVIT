@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Layout } from "@/components/Layout";
 import Index from "./pages/Index";
+import Homepage from "./pages/Homepage";
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 import ProfileSetup from "./pages/Onboarding/ProfileSetup";
@@ -94,10 +95,10 @@ const App = () => (
           }}
         >
           <Routes>
-            {/* Public Routes - Redirect to login by default */}
+            {/* Public Routes */}
             <Route
               path="/"
-              element={<Navigate to="/login" replace />}
+              element={<Homepage />}
             />
             <Route
               path="/login"
