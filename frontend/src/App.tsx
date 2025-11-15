@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { XPProvider } from "@/contexts/XPContext";
 import { Layout } from "@/components/Layout";
 import Index from "./pages/Index";
 import Homepage from "./pages/Homepage";
@@ -85,7 +86,8 @@ function PublicRoute({ children }: { children: ReactNode }) {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
+      <XPProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter
@@ -278,6 +280,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      </XPProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

@@ -12,6 +12,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRealtime } from "@/hooks/useFirebase";
 import { NotificationBell } from "./NotificationBell";
 
 interface LayoutProps {
@@ -21,7 +22,8 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { currentUser, logout } = useAuth();
+  const { userData } = useUserRealtime(currentUser?.uid || null);
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -95,9 +97,9 @@ export const Layout = ({ children }: LayoutProps) => {
                 </Button>
               </Link>
               <Link to="/profile">
-                <Avatar className="cursor-pointer border-2 border-primary hover:border-primary-light transition-colors">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    UA
+                <Avatar className="cursor-pointer border-2 border-purple-700/30 hover:border-purple-600/50 transition-colors">
+                  <AvatarFallback className="bg-purple-600 text-white font-bold">
+                    {(userData?.firstName?.charAt(0) || currentUser?.email?.charAt(0) || 'U').toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Link>

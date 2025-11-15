@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Shield, Trophy, Flame, Zap, Award, Calendar, User, Mail, Cake, Users2, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useXP } from "@/contexts/XPContext";
 import { useUserRealtime, useHabits } from "@/hooks/useFirebase";
 import { useUserPosts } from "@/hooks/useCommunityFeed";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +15,7 @@ import { useState, useEffect } from "react";
 const Profile = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { totalXP, levelInfo, loading: xpLoading } = useXP();
   const { userData, loading: userLoading } = useUserRealtime(currentUser?.uid || null);
   const { habits, loading: habitsLoading } = useHabits(currentUser?.uid || null);
   const { posts, loading: postsLoading, refresh: refreshPosts } = useUserPosts(currentUser?.uid || '');
@@ -22,15 +24,15 @@ const Profile = () => {
 
   // Track XP changes
   useEffect(() => {
-    if (userData?.totalXP !== undefined) {
-      if (previousXP !== null && userData.totalXP !== previousXP) {
-        console.log('[Profile] XP Changed!', { from: previousXP, to: userData.totalXP, diff: userData.totalXP - previousXP });
+    if (totalXP !== undefined && totalXP !== null) {
+      if (previousXP !== null && totalXP !== previousXP) {
+        console.log('[Profile] XP Changed!', { from: previousXP, to: totalXP, diff: totalXP - previousXP });
         setShowXPChange(true);
         setTimeout(() => setShowXPChange(false), 3000);
       }
-      setPreviousXP(userData.totalXP);
+      setPreviousXP(totalXP);
     }
-  }, [userData?.totalXP]);
+  }, [totalXP, previousXP]);
 
   // Calculate stats from real data
   const calculateStats = () => {
@@ -55,7 +57,6 @@ const Profile = () => {
   };
 
   const stats = calculateStats();
-  const xpToNextLevel = (userData?.level || 1) * 100;
 
   const achievements = [
     { name: "First Steps", description: "Complete your first habit", icon: "🎯", unlocked: habits.length > 0 },
@@ -80,7 +81,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8 relative">
       {/* XP Change Notification */}
-      {showXPChange && previousXP !== null && userData?.totalXP !== undefined && (
+      {showXPChange && previousXP !== null && totalXP !== undefined && (
         <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-top-5">
           <Card className="bg-success/20 border-success p-4 shadow-lg">
             <div className="flex items-center gap-3">
@@ -88,7 +89,7 @@ const Profile = () => {
               <div>
                 <p className="font-bold text-success">XP Updated!</p>
                 <p className="text-sm text-foreground">
-                  +{userData.totalXP - previousXP} XP • Total: {userData.totalXP}
+                  +{totalXP - previousXP} XP • Total: {totalXP}
                 </p>
               </div>
             </div>
@@ -111,47 +112,57 @@ const Profile = () => {
 
         {/* Profile Header */}
         <Card className="bg-card border-border p-8 shadow-card">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <Avatar className="w-32 h-32 border-4 border-primary">
-              <AvatarFallback className="text-4xl font-bold bg-primary text-primary-foreground">
-                {userData?.firstName?.charAt(0) || currentUser?.email?.charAt(0).toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl font-bold text-foreground mb-2">
-                {userData?.firstName} {userData?.lastName || ''}
+          <div className="flex flex-col md:flex-row items-start gap-8">
+            {/* Profile Picture - Left Side */}
+            <div className="flex-shrink-0">
+              <Avatar className="w-32 h-32 border-4 border-primary">
+                <AvatarFallback className="text-4xl font-bold bg-primary text-primary-foreground">
+                  {userData?.firstName?.charAt(0) || currentUser?.email?.charAt(0).toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+
+            {/* User Info - Right Side */}
+            <div className="flex-1 space-y-3">
+              {/* Name */}
+              <h1 className="text-3xl font-bold text-foreground">
+                {userData?.firstName || ''} {userData?.lastName || ''}
               </h1>
-              <p className="text-muted-foreground mb-1">@{userData?.username || 'user'}</p>
-              <p className="text-muted-foreground mb-3">{userData?.email || currentUser?.email}</p>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+              
+              {/* Handle */}
+              <p className="text-foreground text-lg">
+                @{userData?.username || 'user'}
+              </p>
+              
+              {/* Email */}
+              <p className="text-foreground text-lg">
+                {userData?.email || currentUser?.email}
+              </p>
+              
+              {/* Badges Row */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 {userData?.championArchetype && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <Shield className="w-4 h-4" />
+                  <Badge variant="secondary" className="flex items-center gap-1.5 rounded-full px-3 py-1.5">
+                    <Shield className="w-3.5 h-3.5" />
                     {userData.championArchetype}
                   </Badge>
                 )}
-                <Badge variant="secondary" className="bg-primary/20 text-primary">
-                  Level {userData?.level || 1}
+                <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 rounded-full px-3 py-1.5">
+                  Level {levelInfo?.level || 1}
                 </Badge>
-                {userData?.age && (
-                  <Badge variant="secondary" className="text-muted-foreground">
-                    {userData.age} years old
-                  </Badge>
-                )}
-                {userData?.gender && (
-                  <Badge variant="secondary" className="text-muted-foreground">
-                    {userData.gender.charAt(0).toUpperCase() + userData.gender.slice(1)}
-                  </Badge>
-                )}
               </div>
             </div>
-            <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => navigate('/profile/edit')}
-            >
-              Edit Profile
-            </Button>
+
+            {/* Edit Button - Top Right */}
+            <div className="flex-shrink-0">
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => navigate('/profile/edit')}
+              >
+                Edit Profile
+              </Button>
+            </div>
           </div>
 
           {/* User Details */}
@@ -195,12 +206,14 @@ const Profile = () => {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-foreground">Level Progress</span>
               <span className="text-sm font-bold text-success">
-                {userData?.totalXP || 0} / {xpToNextLevel} XP
+                {levelInfo?.currentXP || 0} / {levelInfo?.xpForNextLevel || 1000} XP
               </span>
             </div>
-            <Progress value={((userData?.totalXP || 0) / xpToNextLevel) * 100} className="h-3" />
+            <Progress value={levelInfo?.xpProgress || 0} className="h-3" />
             <p className="text-xs text-muted-foreground text-center mt-2">
-              {xpToNextLevel - (userData?.totalXP || 0)} XP until Level {(userData?.level || 1) + 1}
+              {levelInfo && levelInfo.level < 9 
+                ? `${levelInfo.xpForNextLevel - levelInfo.currentXP} XP until Level ${levelInfo.level + 1}`
+                : 'Max Level Reached!'}
             </p>
           </div>
         </Card>
@@ -234,7 +247,7 @@ const Profile = () => {
           </Card>
           <Card className="bg-card border-border p-6 text-center">
             <Zap className="w-8 h-8 text-success mx-auto mb-2" />
-            <div className="text-3xl font-bold text-foreground">{userData?.totalXP || 0}</div>
+            <div className="text-3xl font-bold text-foreground">{totalXP || 0}</div>
             <div className="text-sm text-muted-foreground">Total XP</div>
           </Card>
         </div>

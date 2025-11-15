@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Shield, Sparkles } from "lucide-react";
+import { Shield, Sparkles, CheckCircle2, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { ThunderAnimation } from "./ThunderAnimation";
@@ -10,6 +10,8 @@ interface ChampionDisplayProps {
   level: number;
   xp: number;
   xpToNext: number;
+  totalXP?: number;
+  userName?: string;
   showThunder?: boolean;
   onThunderComplete?: () => void;
 }
@@ -32,6 +34,8 @@ export const ChampionDisplay = ({
   level,
   xp,
   xpToNext,
+  totalXP = 0,
+  userName,
   showThunder = false,
   onThunderComplete,
 }: ChampionDisplayProps) => {
@@ -42,7 +46,6 @@ export const ChampionDisplay = ({
   // Get character image path based on level (clamped between 1-9)
   const getCharacterImage = (lvl: number) => {
     const clampedLevel = Math.max(1, Math.min(9, lvl));
-    // Try both paths in case the folder is in root or public
     return `/Character_Img/Level ${clampedLevel}.png`;
   };
 
@@ -56,7 +59,7 @@ export const ChampionDisplay = ({
   useEffect(() => {
     if (level !== displayLevel) {
       setIsTransitioning(true);
-      setImageError(false); // Reset image error on level change
+      setImageError(false);
       const timer = setTimeout(() => {
         setDisplayLevel(level);
         setIsTransitioning(false);
@@ -65,85 +68,130 @@ export const ChampionDisplay = ({
     }
   }, [level, displayLevel]);
 
-  const xpPercent = (xp / xpToNext) * 100;
+  const xpPercent = Math.min((xp / xpToNext) * 100, 100);
   const characterImage = getCharacterImage(displayLevel);
   const levelName = getLevelName(displayLevel);
 
   return (
-    <Card className="bg-card border-border p-6 shadow-card sticky top-8">
-      <div className="text-center space-y-4">
-        {/* Champion Title */}
-        <div className="flex items-center justify-center gap-2">
-          <Shield className="w-5 h-5 text-primary" />
-          <Badge variant="secondary" className="text-lg px-4 py-2">
-            {levelName}
-          </Badge>
-        </div>
+    <Card className="bg-card border-border shadow-card sticky top-8 overflow-hidden">
+      <div className="p-8 space-y-6">
+        {/* Header Section */}
+        <div className="text-center space-y-6">
+          {/* Profile Picture Section */}
+          <div className="relative flex justify-center">
+            <div className="relative w-40 h-40">
+              {/* Outer glow ring */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-success/20 blur-xl animate-pulse" />
+              
+              {/* Main circle with border */}
+              <div className="relative w-40 h-40 rounded-full border-4 border-primary bg-gradient-to-br from-primary/20 to-success/20 overflow-hidden shadow-primary">
+                {/* Thunder Animation */}
+                {showThunder && onThunderComplete && (
+                  <ThunderAnimation isActive={showThunder} onComplete={onThunderComplete} />
+                )}
+                
+                {/* Character Image */}
+                <div className={`w-full h-full transition-all duration-300 ${isTransitioning ? 'scale-95 opacity-70' : 'scale-100 opacity-100'}`}>
+                  {!imageError ? (
+                    <img
+                      src={characterImage}
+                      alt={`Level ${displayLevel} Character`}
+                      className="w-full h-full object-cover"
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-card">
+                      <Shield className="w-16 h-16 text-primary" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Champion Visual */}
-        <div className="relative">
-          <div className="w-48 h-48 mx-auto bg-gradient-to-br from-primary/20 to-success/20 rounded-full flex items-center justify-center animate-float shadow-primary overflow-hidden relative">
-            {/* Thunder Animation - contained within circle */}
-            {showThunder && onThunderComplete && (
-              <ThunderAnimation isActive={showThunder} onComplete={onThunderComplete} />
-            )}
-            <div className={`w-40 h-40 bg-card rounded-full flex items-center justify-center border-4 border-primary animate-glow transition-all duration-300 relative z-0 ${isTransitioning ? 'scale-95 opacity-70' : 'scale-100 opacity-100'}`}>
-              {!imageError ? (
-                <img
-                  src={characterImage}
-                  alt={`Level ${displayLevel} Character`}
-                  className="w-full h-full object-cover rounded-full"
-                  onError={() => setImageError(true)}
-                />
-              ) : (
-                <Shield className="w-20 h-20 text-primary" />
+          {/* User Name Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-center gap-2">
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                {userName || "Your Champion"}
+              </h2>
+              {displayLevel >= 5 && (
+                <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
               )}
             </div>
-          </div>
-          
-          {/* Level Badge */}
-          <div className="absolute -top-2 -right-2 bg-success shadow-success rounded-full w-16 h-16 flex items-center justify-center border-4 border-background animate-level-up">
-            <div className="text-center">
-              <div className="text-xs text-success-foreground font-medium">Level</div>
-              <div className="text-xl font-bold text-success-foreground">{displayLevel}</div>
+            
+            {/* Level Badge */}
+            <div className="flex justify-center">
+              <Badge 
+                variant="secondary" 
+                className="text-lg px-4 py-1.5"
+              >
+                {levelName}
+              </Badge>
             </div>
           </div>
         </div>
 
-        {/* Champion Name */}
-        <div>
-          <h3 className="text-2xl font-bold text-foreground">Your Champion</h3>
-          <p className="text-muted-foreground text-sm mt-1">
-            Evolves with every habit
-          </p>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* XP Card */}
+          <div className="bg-card border border-border rounded-xl p-4">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Total XP
+              </p>
+              <p className="text-3xl font-bold text-foreground">
+                {totalXP.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          {/* Level Progress Card */}
+          <div className="bg-card border border-border rounded-xl p-4">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Active Level
+              </p>
+              <p className="text-3xl font-bold text-primary">
+                {displayLevel}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* XP Progress */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">XP Progress</span>
-            <span className="text-success font-bold flex items-center gap-1">
+        {/* XP Progress Section */}
+        <div className="space-y-3 pt-2 border-t border-border">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-muted-foreground">Progress to Next Level</span>
+            <span className="text-sm font-bold text-success flex items-center gap-1">
               <Sparkles className="w-4 h-4" />
               {xp} / {xpToNext}
             </span>
           </div>
-          <Progress value={xpPercent} className="h-3 gradient-xp" />
+          
+          <Progress 
+            value={xpPercent} 
+            className="h-2.5"
+          />
+          
           <p className="text-xs text-muted-foreground text-center">
-            {displayLevel < 9 ? `${xpToNext - xp} XP until Level ${displayLevel + 1}` : 'Max Level Reached!'}
+            {displayLevel < 9 
+              ? `${(xpToNext - xp).toLocaleString()} XP until Level ${displayLevel + 1}` 
+              : 'Max Level Reached! 🎉'}
           </p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">{displayLevel * 10}</div>
-            <div className="text-xs text-muted-foreground">Total Habits</div>
+        {/* Champion Type Badge */}
+        {championType && (
+          <div className="pt-2 border-t border-border">
+            <div className="flex items-center justify-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {championType}
+              </span>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-success">{displayLevel * 85}</div>
-            <div className="text-xs text-muted-foreground">Total XP</div>
-          </div>
-        </div>
+        )}
       </div>
     </Card>
   );

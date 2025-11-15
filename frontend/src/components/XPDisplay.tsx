@@ -1,8 +1,5 @@
-import { useEffect, useState } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '@/config/firebase';
-import { useAuth } from '@/contexts/AuthContext';
-import { getLevelInfo, getLevelTitle } from '@/lib/xpSystem';
+import { useXP } from '@/contexts/XPContext';
+import { getLevelTitle } from '@/lib/xpSystem';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Zap, TrendingUp } from 'lucide-react';
@@ -13,26 +10,9 @@ interface XPDisplayProps {
 }
 
 export default function XPDisplay({ variant = 'full', showProgress = true }: XPDisplayProps) {
-  const { currentUser } = useAuth();
-  const [totalXP, setTotalXP] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const { totalXP, levelInfo, loading } = useXP();
 
-  useEffect(() => {
-    if (!currentUser?.uid) return;
-
-    const userRef = doc(db, 'users', currentUser.uid);
-    const unsubscribe = onSnapshot(userRef, (doc) => {
-      if (doc.exists()) {
-        const data = doc.data();
-        setTotalXP(data.totalXP || 0);
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [currentUser]);
-
-  if (loading) {
+  if (loading || !levelInfo) {
     return (
       <div className="animate-pulse">
         <div className="h-8 bg-muted rounded w-24"></div>
@@ -40,14 +20,13 @@ export default function XPDisplay({ variant = 'full', showProgress = true }: XPD
     );
   }
 
-  const levelInfo = getLevelInfo(totalXP);
   const title = getLevelTitle(levelInfo.level);
 
   if (variant === 'minimal') {
     return (
       <div className="flex items-center gap-2">
         <Zap className="w-4 h-4 text-warning" />
-        <span className="font-bold text-foreground">{totalXP}</span>
+        <span className="font-bold text-foreground">{totalXP || 0}</span>
         <span className="text-xs text-muted-foreground">XP</span>
       </div>
     );
@@ -63,7 +42,7 @@ export default function XPDisplay({ variant = 'full', showProgress = true }: XPD
         </div>
         <div className="flex items-center gap-1">
           <Zap className="w-4 h-4 text-warning" />
-          <span className="font-semibold text-foreground">{totalXP}</span>
+          <span className="font-semibold text-foreground">{totalXP || 0}</span>
           <span className="text-xs text-muted-foreground">XP</span>
         </div>
       </div>
@@ -80,7 +59,7 @@ export default function XPDisplay({ variant = 'full', showProgress = true }: XPD
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">{totalXP}</span>
+              <span className="text-xl font-bold text-foreground">{totalXP || 0}</span>
               <span className="text-sm text-muted-foreground">XP</span>
             </div>
             <p className="text-xs text-muted-foreground">{title}</p>
