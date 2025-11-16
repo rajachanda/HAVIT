@@ -19,6 +19,7 @@ import {
   DocumentSnapshot
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { awardXP, XP_REWARDS } from './xpService';
 
 // Types
 export interface Post {
@@ -107,6 +108,10 @@ export const createPost = async (
   };
 
   const docRef = await addDoc(collection(db, 'posts'), postData);
+  
+  // Award XP for creating a post
+  await awardXP(userId, XP_REWARDS.CREATE_POST, 'create_post');
+  
   return docRef.id;
 };
 
@@ -223,6 +228,9 @@ export const likePost = async (postId: string, userId: string): Promise<void> =>
       likes: increment(1),
       likedBy: arrayUnion(userId)
     });
+    
+    // Award XP for liking a post
+    await awardXP(userId, XP_REWARDS.LIKE_POST, 'like_post');
   }
 };
 
@@ -337,6 +345,9 @@ export const addComment = async (
       replies: arrayUnion(docRef.id)
     });
   }
+
+  // Award XP for commenting
+  await awardXP(userId, XP_REWARDS.COMMENT_ON_POST, 'comment_on_post');
 
   return docRef.id;
 };
