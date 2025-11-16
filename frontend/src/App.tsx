@@ -10,11 +10,7 @@ import Index from "./pages/Index";
 import Homepage from "./pages/Homepage";
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
-import ProfileSetup from "./pages/Onboarding/ProfileSetup";
-import UniversalQuestions from "./pages/Onboarding/UniversalQuestions";
-import ConditionalQuestions from "./pages/Onboarding/ConditionalQuestions";
-import ConversationalOnboarding from "./pages/Onboarding/ConversationalOnboarding";
-import CharacterSelect from "./pages/CharacterSelect";
+import GamifiedOnboarding from "./pages/Onboarding/GamifiedOnboarding";
 import Habits from "./pages/Habits";
 import ChallengesPage from "./pages/ChallengesPage";
 import Leaderboard from "./pages/Leaderboard";
@@ -121,10 +117,10 @@ const App = () => (
 
             {/* Onboarding Routes (protected) */}
             <Route
-              path="/onboarding/profile"
+              path="/onboarding"
               element={
                 <ProtectedRoute>
-                  <ProfileSetup />
+                  <GamifiedOnboarding />
                 </ProtectedRoute>
               }
             />
@@ -133,38 +129,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <CompleteProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/onboarding/universal-questions"
-              element={
-                <ProtectedRoute>
-                  <UniversalQuestions />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/onboarding/conditional-questions"
-              element={
-                <ProtectedRoute>
-                  <ConditionalQuestions />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/onboarding"
-              element={
-                <ProtectedRoute>
-                  <ConversationalOnboarding />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/character-select"
-              element={
-                <ProtectedRoute>
-                  <CharacterSelect />
                 </ProtectedRoute>
               }
             />

@@ -121,8 +121,8 @@ export default function CompleteProfile() {
         if (userData?.onboardingCompleted) {
           navigate('/dashboard');
         } else {
-          // New user - continue to onboarding questions
-          navigate('/onboarding/universal-questions');
+          // New user - continue to onboarding
+          navigate('/onboarding');
         }
       } else {
         throw new Error(result.error || 'Failed to save profile');

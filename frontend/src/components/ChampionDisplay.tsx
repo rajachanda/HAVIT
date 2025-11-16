@@ -1,9 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Shield, Sparkles, CheckCircle2, Zap } from "lucide-react";
+import { Shield, Sparkles, CheckCircle2, Zap, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { ThunderAnimation } from "./ThunderAnimation";
+import { ShareCharacterModal } from "./ShareCharacterModal";
 
 interface ChampionDisplayProps {
   championType: string;
@@ -42,6 +44,7 @@ export const ChampionDisplay = ({
   const [displayLevel, setDisplayLevel] = useState(level);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Get character image path based on level (clamped between 1-9)
   const getCharacterImage = (lvl: number) => {
@@ -192,7 +195,32 @@ export const ChampionDisplay = ({
             </div>
           </div>
         )}
+
+        {/* Share Achievement Button */}
+        <div className="pt-4 border-t border-border">
+          <Button 
+            variant="outline" 
+            size="lg"
+            onClick={() => setShowShareModal(true)}
+            className="w-full gap-2 hover:bg-primary/10 hover:border-primary bg-gradient-to-r from-primary/5 to-success/5 border-primary/30 transition-all hover:shadow-lg"
+          >
+            <Share2 className="w-5 h-5" />
+            Share Achievement
+          </Button>
+        </div>
       </div>
+
+      {/* Share Character Modal */}
+      <ShareCharacterModal
+        open={showShareModal}
+        onOpenChange={setShowShareModal}
+        userName={userName || "Champion"}
+        level={displayLevel}
+        levelName={levelName}
+        totalXP={totalXP}
+        championType={championType}
+        characterImage={characterImage}
+      />
     </Card>
   );
 };

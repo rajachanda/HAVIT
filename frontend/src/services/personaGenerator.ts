@@ -1,7 +1,16 @@
 interface PersonaInput {
-  universalAnswers: any;
-  branch: string;
-  branchResponses: Record<string, any>;
+  universalAnswers?: any;
+  branch?: string;
+  branchResponses?: Record<string, any>;
+  // New gamified format
+  motivation?: string;
+  dreamJourney?: string[];
+  losesMomentum?: string;
+  topMotivators?: string[];
+  weekFeeling?: string;
+  pushOrProtect?: string;
+  comparisonResponse?: string;
+  missResponse?: string;
 }
 
 interface Persona {
@@ -22,6 +31,12 @@ interface Persona {
 }
 
 export async function generatePersona(input: PersonaInput): Promise<Persona> {
+  // Check if it's the new gamified format
+  if (input.motivation || input.dreamJourney) {
+    return generateGamifiedPersona(input);
+  }
+  
+  // Legacy format
   const { universalAnswers, branch, branchResponses } = input;
 
   // For now, use a rule-based fallback until Gemini API is configured
@@ -39,6 +54,147 @@ export async function generatePersona(input: PersonaInput): Promise<Persona> {
   }
 
   return generateFallbackPersona(input);
+}
+
+function generateGamifiedPersona(input: PersonaInput): Persona {
+  const {
+    motivation,
+    dreamJourney = [],
+    losesMomentum,
+    topMotivators = [],
+    weekFeeling,
+    pushOrProtect,
+    comparisonResponse,
+    missResponse,
+  } = input;
+
+  // Determine archetype based on answers
+  let archetype = 'Guardian';
+  let personaName = 'The Steady Guardian';
+  let tone = 'supportive';
+  let motivationLever = 'consistency';
+
+  // Competitive/Warrior persona
+  if (
+    motivation === 'challenge' ||
+    dreamJourney.includes('rival') ||
+    comparisonResponse === 'motivated' ||
+    topMotivators.includes('competition') ||
+    pushOrProtect === 'push'
+  ) {
+    archetype = 'Warrior';
+    personaName = 'The Relentless Warrior';
+    tone = 'aggressive';
+    motivationLever = 'winning';
+  }
+  // Analytical/Mage persona
+  else if (
+    dreamJourney.includes('charts') ||
+    losesMomentum === 'why' ||
+    topMotivators.includes('progress') ||
+    weekFeeling === 'smarter'
+  ) {
+    archetype = 'Mage';
+    personaName = 'The Wise Mage';
+    tone = 'evidence-based';
+    motivationLever = 'understanding';
+  }
+  // Social/Bard persona
+  else if (
+    motivation === 'support' ||
+    dreamJourney.includes('squad') ||
+    topMotivators.includes('team') ||
+    weekFeeling === 'supported'
+  ) {
+    archetype = 'Bard';
+    personaName = 'The Social Bard';
+    tone = 'warm';
+    motivationLever = 'community';
+  }
+  // Adventurous/Rogue persona
+  else if (
+    dreamJourney.includes('achievements') ||
+    dreamJourney.includes('quests') ||
+    weekFeeling === 'surprised' ||
+    topMotivators.includes('creativity')
+  ) {
+    archetype = 'Rogue';
+    personaName = 'The Adventurous Rogue';
+    tone = 'playful';
+    motivationLever = 'discovery';
+  }
+  // Gentle/Healer persona
+  else if (
+    pushOrProtect === 'protect' ||
+    missResponse === 'nudge' ||
+    weekFeeling === 'calm' ||
+    losesMomentum === 'let-go'
+  ) {
+    archetype = 'Healer';
+    personaName = 'The Gentle Healer';
+    tone = 'gentle';
+    motivationLever = 'self-care';
+  }
+
+  const strengthsMap: Record<string, string[]> = {
+    Warrior: ['Highly competitive', 'Goal-oriented', 'Resilient under pressure'],
+    Mage: ['Strategic thinker', 'Data-driven', 'Problem solver'],
+    Bard: ['Team player', 'Supportive', 'Community-focused'],
+    Rogue: ['Adaptable', 'Creative', 'Enjoys variety'],
+    Healer: ['Self-aware', 'Balanced', 'Mindful'],
+    Guardian: ['Consistent', 'Reliable', 'Steady'],
+  };
+
+  const challengesMap: Record<string, string[]> = {
+    Warrior: ['Can burn out from overexertion', 'May struggle with rest days'],
+    Mage: ['Analysis paralysis', 'Can overthink simple tasks'],
+    Bard: ['Relies too heavily on external validation', 'Struggles alone'],
+    Rogue: ['May lose focus without novelty', 'Can be inconsistent'],
+    Healer: ['May avoid pushing boundaries', 'Risk of complacency'],
+    Guardian: ['May resist change', 'Can be too rigid'],
+  };
+
+  const habitsMap: Record<string, string[]> = {
+    Warrior: ['Set daily challenges', 'Track personal records', 'Compete in leaderboards'],
+    Mage: ['Analyze habit patterns', 'Set data-driven goals', 'Track multiple metrics'],
+    Bard: ['Join squad challenges', 'Share progress', 'Support others'],
+    Rogue: ['Try habit variations', 'Unlock achievements', 'Complete daily quests'],
+    Healer: ['Practice mindfulness', 'Set gentle reminders', 'Focus on well-being'],
+    Guardian: ['Build streaks', 'Follow routines', 'Track consistency'],
+  };
+
+  const churnRisksMap: Record<string, string[]> = {
+    Warrior: ['No competitive challenges', 'Lack of progress feedback'],
+    Mage: ['Insufficient data/insights', 'Too simplistic'],
+    Bard: ['Feeling isolated', 'No community engagement'],
+    Rogue: ['Repetitive tasks', 'No new features'],
+    Healer: ['Too aggressive notifications', 'Overwhelming goals'],
+    Guardian: ['Breaking streaks', 'Unclear structure'],
+  };
+
+  return {
+    personaName,
+    archetype,
+    strengths: strengthsMap[archetype] || strengthsMap.Guardian,
+    challenges: challengesMap[archetype] || challengesMap.Guardian,
+    recommendedHabits: habitsMap[archetype] || habitsMap.Guardian,
+    sageBehavior: {
+      tone,
+      frequency: missResponse === 'alone' ? 3 : 6,
+      topics: topMotivators.length > 0 ? topMotivators : ['progress', 'consistency'],
+      motivationLever,
+    },
+    retentionStrategy: `Focus on ${motivationLever} and ${archetype.toLowerCase()}-specific features`,
+    churnRisks: churnRisksMap[archetype] || churnRisksMap.Guardian,
+    interventionStrategy:
+      missResponse === 'hype'
+        ? 'Send motivational boost messages'
+        : missResponse === 'nudge'
+        ? 'Send gentle reminder with encouragement'
+        : missResponse === 'suggest'
+        ? 'Offer simplified routine options'
+        : 'Wait for user to return, send one check-in after 7 days',
+  };
 }
 
 async function generateWithGemini(input: PersonaInput, apiKey: string): Promise<Persona> {

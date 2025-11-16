@@ -70,7 +70,7 @@ export default function Signup() {
     setLoading(false);
 
     if (result.success) {
-      navigate('/onboarding/profile');
+      navigate('/onboarding');
     } else {
       setError(result.error || 'Failed to create account');
     }
