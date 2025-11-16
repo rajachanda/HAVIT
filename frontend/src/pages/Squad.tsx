@@ -8,13 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Target, TrendingUp, Plus, Crown, UserPlus, LogOut, Swords } from "lucide-react";
+import { Users, Target, TrendingUp, Plus, Crown, UserPlus, LogOut, Swords, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSquad } from "@/hooks/useSquad";
 import { useSquadMembers } from "@/hooks/useSquadMembers";
 import { useSquadLeaderboard } from "@/hooks/useSquadLeaderboard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { squadService } from "@/services/squadService";
 import { awardXP, XP_REWARDS } from "@/services/xpService";
 
@@ -165,11 +167,38 @@ const Squad = () => {
   const [squadDescription, setSquadDescription] = useState("");
   const [squadGoal, setSquadGoal] = useState("1000");
   const [inviteUsername, setInviteUsername] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Use Firebase data if available, otherwise use static data
   const squad = firebaseSquad || STATIC_SQUAD_DATA;
   const members = firebaseMembers.length > 0 ? firebaseMembers : STATIC_MEMBERS;
   const otherSquads = firebaseOtherSquads.length > 0 ? firebaseOtherSquads : STATIC_OTHER_SQUADS;
+
+  // Search users as user types
+  useEffect(() => {
+    const searchUsers = async () => {
+      if (inviteUsername.trim().length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const results = await squadService.searchUsersByUsername(inviteUsername.trim(), 10);
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Error searching users:", error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(searchUsers, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [inviteUsername]);
 
   // Action handlers
   const handleCreateSquad = async () => {
@@ -283,6 +312,15 @@ const Squad = () => {
 
   const handleInviteMembers = () => {
     setInviteDialogOpen(true);
+    setInviteUsername("");
+    setSearchResults([]);
+    setShowSuggestions(false);
+  };
+
+  const handleSelectUser = (user: any) => {
+    setInviteUsername(user.username);
+    setShowSuggestions(false);
+    setSearchResults([user]); // Keep the selected user in results
   };
 
   const handleSendInvite = async () => {
@@ -612,7 +650,14 @@ const Squad = () => {
         </Dialog>
 
         {/* Invite Members Dialog */}
-        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <Dialog open={inviteDialogOpen} onOpenChange={(open) => {
+          setInviteDialogOpen(open);
+          if (!open) {
+            setInviteUsername("");
+            setSearchResults([]);
+            setShowSuggestions(false);
+          }
+        }}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Invite Members</DialogTitle>
@@ -621,18 +666,65 @@ const Squad = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
+              <div className="relative">
                 <Label htmlFor="invite-username">Username</Label>
                 <Input
                   id="invite-username"
                   type="text"
-                  placeholder="@username"
+                  placeholder="Search by username..."
                   value={inviteUsername}
-                  onChange={(e) => setInviteUsername(e.target.value)}
+                  onChange={(e) => {
+                    setInviteUsername(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Enter the username of the person you want to invite
+                  Start typing to see suggestions
                 </p>
+                
+                {/* Search Results Dropdown */}
+                {showSuggestions && inviteUsername.trim().length >= 2 && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-60 overflow-y-auto">
+                    {isSearching ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        Searching...
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <div className="py-2">
+                        {searchResults.map((user) => (
+                          <button
+                            key={user.id}
+                            onClick={() => handleSelectUser(user)}
+                            className="w-full px-4 py-2 hover:bg-accent flex items-center gap-3 text-left transition-colors"
+                          >
+                            <Avatar className="w-8 h-8">
+                              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                                {(user.firstName || user.username || "U").charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">@{user.username}</div>
+                              {user.firstName && (
+                                <div className="text-xs text-muted-foreground">
+                                  {user.firstName} {user.lastName || ""}
+                                </div>
+                              )}
+                            </div>
+                            {user.squadId && (
+                              <Badge variant="outline" className="text-xs">In Squad</Badge>
+                            )}
+                            <div className="text-xs text-muted-foreground">Lvl {user.level || 1}</div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        No users found
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <DialogFooter>

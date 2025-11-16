@@ -184,4 +184,49 @@ export const squadService = {
       throw error;
     }
   },
+
+  // Search users by username pattern
+  async searchUsersByUsername(searchTerm: string, limit: number = 10) {
+    try {
+      if (!searchTerm || searchTerm.trim().length === 0) {
+        return [];
+      }
+
+      const usersRef = collection(db, 'users');
+      
+      // Search for usernames that start with the search term (case-insensitive)
+      const searchLower = searchTerm.toLowerCase();
+      const searchUpper = searchTerm.toUpperCase();
+      
+      const q = query(
+        usersRef,
+        where('username', '>=', searchLower),
+        where('username', '<=', searchLower + '\uf8ff')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      
+      const users = querySnapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          username: doc.data().username,
+          firstName: doc.data().firstName,
+          lastName: doc.data().lastName,
+          avatar: doc.data().avatar,
+          level: doc.data().level,
+          squadId: doc.data().squadId,
+        }))
+        .filter(user => 
+          user.username && 
+          user.username.toLowerCase().includes(searchLower)
+        )
+        .slice(0, limit);
+      
+      return users;
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
+    }
+  },
 };
+
