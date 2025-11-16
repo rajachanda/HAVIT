@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Heart, Share2, TrendingUp, Sparkles } from "lucide-react";
+import { MessageSquare, Heart, Share2, TrendingUp, Sparkles, Award } from "lucide-react";
 
 interface Post {
   id: string;
@@ -146,9 +146,9 @@ const Community = () => {
               {post.achievement && (
                 <Badge
                   variant="secondary"
-                  className="mb-3 bg-success/20 text-success border-success/50"
+                  className="mb-3 bg-success/20 text-success border-success/50 flex items-center gap-1 w-fit"
                 >
-                  🏆 {post.achievement}
+                  <Award className="w-3 h-3" /> {post.achievement}
                 </Badge>
               )}
 

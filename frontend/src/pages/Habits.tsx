@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { HabitCard } from "@/components/HabitCard";
 import { QuickAddHabit } from "@/components/QuickAddHabit";
-import { Plus, Search, Filter, Zap } from "lucide-react";
+import DateCarousel from "@/components/DateCarousel";
+import { Plus, Search, Filter, Zap, BarChart3, CheckCircle2, Flame, TrendingUp, Inbox, SearchX } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHabits } from "@/hooks/useFirebase";
 
@@ -73,30 +74,30 @@ const Habits = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-foreground">All Habits</h1>
-            <p className="text-muted-foreground mt-1">Manage and track your daily habits</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground">All Habits</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage and track your daily habits</p>
           </div>
           <div className="flex gap-2">
             <Button 
-              size="lg" 
+              size="default"
               variant="outline"
               className="bg-warning/10 border-warning text-warning hover:bg-warning hover:text-warning-foreground"
               onClick={() => setShowQuickAdd(true)}
             >
-              <Zap className="w-5 h-5 mr-2" />
+              <Zap className="w-4 h-4 mr-2" />
               Quick Add
             </Button>
             <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary-dark shadow-primary"
+              size="default"
+              className="bg-primary hover:bg-primary/90"
               onClick={() => navigate('/habits/new')}
             >
-              <Plus className="w-5 h-5 mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               Create Habit
             </Button>
           </div>
@@ -111,23 +112,75 @@ const Habits = () => {
           }}
         />
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Card className="bg-card border-border p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3">
+              <BarChart3 className="w-8 h-8 text-primary" />
+              <div>
+                <div className="text-2xl font-bold text-foreground">{habits.length}</div>
+                <div className="text-xs text-muted-foreground">Total Habits</div>
+              </div>
+            </div>
+          </Card>
+          <Card className="bg-card border-border p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-8 h-8 text-success" />
+              <div>
+                <div className="text-2xl font-bold text-success">{completedToday}</div>
+                <div className="text-xs text-muted-foreground">Completed Today</div>
+              </div>
+            </div>
+          </Card>
+          <Card className="bg-card border-border p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3">
+              <Flame className="w-8 h-8 text-warning" />
+              <div>
+                <div className="text-2xl font-bold text-warning">{longestStreak}</div>
+                <div className="text-xs text-muted-foreground">Longest Streak</div>
+              </div>
+            </div>
+          </Card>
+          <Card className="bg-card border-border p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-8 h-8 text-primary" />
+              <div>
+                <div className="text-2xl font-bold text-primary">{completionRate}%</div>
+                <div className="text-xs text-muted-foreground">Completion Rate</div>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Date Carousel */}
+        <DateCarousel 
+          habits={habits}
+          onDateSelect={(date) => {
+            console.log('Selected date:', date);
+          }}
+        />
+
         {/* Filters */}
-        <Card className="bg-card border-border p-4">
-          <div className="flex flex-col md:flex-row gap-4">
+        <Card className="bg-card border-border p-3 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Search habits..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-background border-border"
+                className="pl-9 h-9 bg-background border-border"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-muted-foreground" />
+            
+            {/* Category Filters */}
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              <Filter className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <Button
                 variant={selectedCategory === null ? "default" : "ghost"}
                 size="sm"
+                className="h-9"
                 onClick={() => setSelectedCategory(null)}
               >
                 All
@@ -137,6 +190,7 @@ const Habits = () => {
                   key={category}
                   variant={selectedCategory === category ? "default" : "ghost"}
                   size="sm"
+                  className="h-9 whitespace-nowrap"
                   onClick={() => setSelectedCategory(category)}
                 >
                   {category}
@@ -146,32 +200,6 @@ const Habits = () => {
           </div>
         </Card>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-card border-border p-4 text-center">
-            <div className="text-3xl font-bold text-foreground">{habits.length}</div>
-            <div className="text-sm text-muted-foreground">Total Habits</div>
-          </Card>
-          <Card className="bg-card border-border p-4 text-center">
-            <div className="text-3xl font-bold text-success">
-              {completedToday}
-            </div>
-            <div className="text-sm text-muted-foreground">Completed Today</div>
-          </Card>
-          <Card className="bg-card border-border p-4 text-center">
-            <div className="text-3xl font-bold text-warning">
-              {longestStreak}
-            </div>
-            <div className="text-sm text-muted-foreground">Longest Streak</div>
-          </Card>
-          <Card className="bg-card border-border p-4 text-center">
-            <div className="text-3xl font-bold text-primary">
-              {completionRate}%
-            </div>
-            <div className="text-sm text-muted-foreground">Completion Rate</div>
-          </Card>
-        </div>
-
         {/* Habits List */}
         <div className="space-y-3">
           {filteredHabits.length > 0 ? (
@@ -179,15 +207,26 @@ const Habits = () => {
               <HabitCard key={habit.id} habit={habit} userId={currentUser?.uid || ''} />
             ))
           ) : (
-            <Card className="bg-card border-border p-12 text-center">
-              <p className="text-muted-foreground">
+            <Card className="bg-card border-border p-8 md:p-12 text-center">
+              <div className="flex justify-center mb-4">
+                {habits.length === 0 ? (
+                  <Inbox className="w-16 h-16 text-muted-foreground" />
+                ) : (
+                  <SearchX className="w-16 h-16 text-muted-foreground" />
+                )}
+              </div>
+              <p className="text-muted-foreground text-lg font-medium mb-2">
                 {habits.length === 0 
-                  ? "No habits yet. Create your first habit to get started!" 
-                  : "No habits found. Try adjusting your filters."}
+                  ? "No habits yet" 
+                  : "No habits found"}
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {habits.length === 0 
+                  ? "Create your first habit to get started on your journey!" 
+                  : "Try adjusting your search or filters"}
               </p>
               {habits.length === 0 && (
                 <Button 
-                  className="mt-4" 
                   onClick={() => navigate('/habits/new')}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -198,6 +237,17 @@ const Habits = () => {
           )}
         </div>
       </div>
+
+      {/* Hide scrollbar for category filters */}
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 };

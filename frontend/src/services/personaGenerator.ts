@@ -198,9 +198,8 @@ function generateGamifiedPersona(input: PersonaInput): Persona {
 }
 
 async function generateWithGemini(input: PersonaInput, apiKey: string): Promise<Persona> {
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const { GoogleGenAI } = await import('@google/genai');
+  const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
 Analyze these user responses and create a detailed persona for HAVIT habit tracker:
@@ -236,9 +235,12 @@ Generate JSON response with EXACTLY this structure (valid JSON only, no markdown
 }
 `;
 
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const text = response.text();
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+  });
+
+  const text = response.text || (response as any).text || '';
 
   // Parse JSON from response
   const jsonMatch = text.match(/\{[\s\S]*\}/);

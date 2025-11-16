@@ -14,6 +14,7 @@ import {
   increment
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { awardXP, XP_REWARDS } from './xpService';
 
 // Types
 export interface Challenge {
@@ -186,6 +187,9 @@ export const createChallenge = async (
   
   await addDoc(collection(db, 'challenges'), opponentChallengeData);
   
+  // Award XP for creating a challenge
+  await awardXP(userId, XP_REWARDS.CREATE_CHALLENGE, 'create_challenge');
+  
   return docRef.id;
 };
 
@@ -262,6 +266,9 @@ export const acceptChallenge = async (
   await updateDoc(opponentRef, {
     totalXP: increment(-challengeData.stakeXP)
   });
+  
+  // Award XP for accepting/joining a challenge
+  await awardXP(userId, XP_REWARDS.JOIN_CHALLENGE, 'accept_challenge');
 };
 
 // Create an AI Sage challenge
