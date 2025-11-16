@@ -1,155 +1,226 @@
 import { UserData, Habit } from '@/lib/api';
+import { Challenge } from './challengesService';
 
-interface AISageResponse {
+interface AISageInsight {
   insight: string;
   suggested_habit: string;
 }
 
 interface UserContext {
-  persona: string;
+  persona: {
+    personaName?: string;
+    archetype?: string;
+    traits?: string[];
+    coachingStyle?: string;
+  } | null;
   habits: Array<{
     name: string;
     category: string;
     frequency: string;
     successRate: number;
     streak: number;
+    reminderTime?: string;
+    completions: Array<{ date: string; completed: boolean }>;
   }>;
   streaks: {
     currentStreak: number;
     longestStreak: number;
-    consistency: number;
   };
   timePatterns: {
-    peakEnergyTime: string;
-    chronotype: string;
-    dailyTimeAvailable: number;
+    morning: number;
+    afternoon: number;
+    evening: number;
+    night: number;
   };
-  missedDays: {
-    weakPoints: string[];
-    completionRate: number;
-  };
+  missedDays: string[];
   challenges: {
-    joined: number;
+    active: number;
     completed: number;
+    victories: number;
+    defeats: number;
+    type: 'pvp' | 'ai-sage' | 'solo';
   };
   social: {
-    type: 'solo' | 'friend' | 'squad';
+    hasSquad: boolean;
+    friendChallenges: number;
+    soloHabits: number;
   };
   whyMatters?: string[];
   mood?: string;
 }
 
 /**
- * Analyzes user data and generates personalized insights and habit suggestions using Gemini AI
+ * Analyze habits to calculate success rates and patterns
  */
-export async function getAISageInsights(
-  userData: UserData,
-  habits: Habit[]
-): Promise<AISageResponse | null> {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+function analyzeHabits(habits: Habit[]): {
+  habitsWithStats: UserContext['habits'];
+  timePatterns: UserContext['timePatterns'];
+  missedDays: string[];
+} {
+  const habitsWithStats = habits.map(habit => {
+    const completions = habit.completions || [];
+    const completed = completions.filter(c => c.completed).length;
+    const total = completions.length;
+    const successRate = total > 0 ? (completed / total) * 100 : 0;
+    
+    // Calculate current streak
+    let streak = 0;
+    const sortedCompletions = [...completions].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    
+    for (const comp of sortedCompletions) {
+      if (comp.completed) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    
+    return {
+      name: habit.name,
+      category: habit.category,
+      frequency: habit.frequency,
+      successRate: Math.round(successRate),
+      streak,
+      reminderTime: habit.reminderTime,
+      completions: habit.completions || [],
+    };
+  });
 
+  // Analyze time patterns
+  const timePatterns = {
+    morning: 0,
+    afternoon: 0,
+    evening: 0,
+    night: 0,
+  };
+
+  habits.forEach(habit => {
+    if (habit.reminderTime) {
+      const hour = parseInt(habit.reminderTime.split(':')[0]);
+      if (hour >= 5 && hour < 12) timePatterns.morning++;
+      else if (hour >= 12 && hour < 17) timePatterns.afternoon++;
+      else if (hour >= 17 && hour < 21) timePatterns.evening++;
+      else timePatterns.night++;
+    }
+  });
+
+  // Analyze missed days (days of week where habits are most missed)
+  const missedDaysMap: Record<string, number> = {};
+  habits.forEach(habit => {
+    habit.completions?.forEach(comp => {
+      if (!comp.completed) {
+        const date = new Date(comp.date);
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+        missedDaysMap[dayName] = (missedDaysMap[dayName] || 0) + 1;
+      }
+    });
+  });
+
+  const missedDays = Object.entries(missedDaysMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([day]) => day);
+
+  return { habitsWithStats, timePatterns, missedDays };
+}
+
+/**
+ * Analyze challenges to get statistics
+ */
+function analyzeChallenges(challenges: Challenge[]): UserContext['challenges'] {
+  // Handle both Challenge types (from lib/api.ts and challengesService.ts)
+  const active = challenges.filter(c => c.status === 'active').length;
+  const completed = challenges.filter(c => 
+    ['victory', 'defeated', 'tied', 'completed'].includes(c.status)
+  ).length;
+  const victories = challenges.filter(c => c.status === 'victory' || (c.status === 'completed' && (c as any).winner === 'user')).length;
+  const defeats = challenges.filter(c => c.status === 'defeated' || (c.status === 'completed' && (c as any).winner && (c as any).winner !== 'user')).length;
+  
+  const hasPVP = challenges.some(c => c.challengeType === 'pvp' || (c.opponentId && c.opponentId !== 'ai-sage'));
+  const hasAISage = challenges.some(c => c.challengeType === 'ai-sage' || c.opponentId === 'ai-sage');
+  
+  let type: 'pvp' | 'ai-sage' | 'solo' = 'solo';
+  if (hasPVP) type = 'pvp';
+  else if (hasAISage) type = 'ai-sage';
+
+  return {
+    active,
+    completed,
+    victories,
+    defeats,
+    type,
+  };
+}
+
+/**
+ * Build user context from Firestore data
+ */
+export function buildUserContext(
+  userData: UserData,
+  habits: Habit[],
+  challenges: Challenge[]
+): UserContext {
+  const { habitsWithStats, timePatterns, missedDays } = analyzeHabits(habits);
+  const challengeStats = analyzeChallenges(challenges);
+
+  return {
+    persona: userData.persona || null,
+    habits: habitsWithStats,
+    streaks: {
+      currentStreak: userData.currentStreak || 0,
+      longestStreak: userData.longestStreak || 0,
+    },
+    timePatterns,
+    missedDays,
+    challenges: challengeStats,
+    social: {
+      hasSquad: false, // TODO: Add squad detection
+      friendChallenges: challenges.filter(c => c.challengeType === 'pvp').length,
+      soloHabits: habits.length - challengeStats.active,
+    },
+    whyMatters: userData.persona?.traits || [],
+    mood: undefined, // TODO: Add mood tracking if available
+  };
+}
+
+/**
+ * Generate AI Sage insights using Gemini API
+ */
+export async function generateAISageInsights(
+  userContext: UserContext
+): Promise<AISageInsight> {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  
   if (!apiKey) {
-    console.warn('Gemini API key not found, using fallback insights');
-    return getFallbackInsights(userData, habits);
+    throw new Error('Gemini API key not configured');
   }
 
-  try {
-    // Calculate habit statistics
-    const today = new Date().toISOString().split('T')[0];
-    const habitStats = habits.map((habit) => {
-      const completions = habit.completions || [];
-      const totalCompletions = completions.filter((c) => c.completed).length;
-      const totalDays = completions.length || 1;
-      const successRate = Math.round((totalCompletions / totalDays) * 100);
+  // Initialize GoogleGenAI with API key (dynamic import)
+  const { GoogleGenAI } = await import('@google/genai');
+  const ai = new GoogleGenAI({ apiKey });
+  
+  console.log('[AI Sage] Generating insights with context:', {
+    persona: userContext.persona?.personaName,
+    habitsCount: userContext.habits.length,
+    challengesCount: userContext.challenges.active + userContext.challenges.completed,
+  });
 
-      // Calculate current streak
-      let streak = 0;
-      const sortedCompletions = [...completions]
-        .filter((c) => c.completed)
-        .sort((a, b) => b.date.localeCompare(a.date));
+  // Build the prompt
+  const personaName = userContext.persona?.personaName || userContext.persona?.archetype || 'User';
+  const personaType = userContext.persona?.archetype || 'General User';
+  
+  const habitsList = userContext.habits.map(h => 
+    `- ${h.name} (${h.category}): ${h.successRate}% success, ${h.streak} day streak, ${h.frequency}`
+  ).join('\n    ');
 
-      if (sortedCompletions.length > 0) {
-        let currentDate = new Date(today);
-        for (const completion of sortedCompletions) {
-          const completionDate = new Date(completion.date);
-          const daysDiff = Math.floor(
-            (currentDate.getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24)
-          );
-          if (daysDiff === streak) {
-            streak++;
-            currentDate = completionDate;
-          } else {
-            break;
-          }
-        }
-      }
+  const timePatternsStr = Object.entries(userContext.timePatterns)
+    .filter(([_, count]) => count > 0)
+    .map(([time, count]) => `${time}: ${count} habits`)
+    .join(', ');
 
-      return {
-        name: habit.name,
-        category: habit.category,
-        frequency: habit.frequency,
-        successRate,
-        streak,
-      };
-    });
-
-    // Calculate overall consistency
-    const allCompletions = habits.flatMap((h) => h.completions || []);
-    const uniqueDates = new Set(allCompletions.map((c) => c.date));
-    const completedDates = new Set(
-      allCompletions.filter((c) => c.completed).map((c) => c.date)
-    );
-    const consistency = uniqueDates.size > 0 
-      ? Math.round((completedDates.size / uniqueDates.size) * 100) 
-      : 0;
-
-    // Determine weak points (days of week with most misses)
-    const dayOfWeekMisses: Record<string, number> = {};
-    allCompletions.forEach((c) => {
-      if (!c.completed) {
-        const date = new Date(c.date);
-        const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-        dayOfWeekMisses[dayName] = (dayOfWeekMisses[dayName] || 0) + 1;
-      }
-    });
-    const weakPoints = Object.entries(dayOfWeekMisses)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 2)
-      .map(([day]) => day);
-
-    // Build user context
-    const userContext: UserContext = {
-      persona: userData.persona?.personaName || userData.championArchetype || 'Guardian',
-      habits: habitStats,
-      streaks: {
-        currentStreak: userData.currentStreak || 0,
-        longestStreak: userData.longestStreak || 0,
-        consistency,
-      },
-      timePatterns: {
-        peakEnergyTime: userData.peakEnergyTime || 'morning',
-        chronotype: userData.chronotype || 'balanced',
-        dailyTimeAvailable: userData.dailyTimeAvailable || 60,
-      },
-      missedDays: {
-        weakPoints,
-        completionRate: consistency,
-      },
-      challenges: {
-        joined: 0, // TODO: Get from challenges collection
-        completed: 0,
-      },
-      social: {
-        type: 'solo', // TODO: Determine from user data
-      },
-    };
-
-    // Call Gemini API
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    const prompt = `You are an expert habit-building coach called "AI Sage" in a habit tracking app.
+  const prompt = `You are an expert habit-building coach called "AI Sage" in a habit tracking app.
 
 You analyze real user habit data and give short, actionable, motivating insights.
 
@@ -157,15 +228,31 @@ You suggest one NEW habit tailored to their personality, current routines, and g
 
 USER CONTEXT:
 
-- Persona: ${userContext.persona}
+- Persona: ${personaName} (${personaType})
+${userContext.persona?.traits ? `- Traits: ${userContext.persona.traits.join(', ')}` : ''}
+${userContext.persona?.coachingStyle ? `- Coaching Style: ${userContext.persona.coachingStyle}` : ''}
 
-- Completed habits & streak data: 
-    - Habits: ${JSON.stringify(userContext.habits)}
-    - Streaks: ${JSON.stringify(userContext.streaks)}
-    - Time of day patterns: ${JSON.stringify(userContext.timePatterns)}
-    - Missed days / weak points: ${JSON.stringify(userContext.missedDays)}
-    - Challenges joined/completed: ${JSON.stringify(userContext.challenges)}
-    - Social interaction: ${JSON.stringify(userContext.social)}
+- Completed habits & streak data:
+    - Habits: ${habitsList || 'No habits yet'}
+    - Current Streak: ${userContext.streaks.currentStreak} days
+    - Longest Streak: ${userContext.streaks.longestStreak} days
+    - Time of day patterns: ${timePatternsStr || 'No clear pattern'}
+    - Missed days / weak points: ${userContext.missedDays.length > 0 ? userContext.missedDays.join(', ') : 'None identified'}
+
+- Challenges joined/completed:
+    - Active: ${userContext.challenges.active}
+    - Completed: ${userContext.challenges.completed}
+    - Victories: ${userContext.challenges.victories}
+    - Defeats: ${userContext.challenges.defeats}
+    - Type: ${userContext.challenges.type}
+
+- Social interaction:
+    - Friend challenges: ${userContext.social.friendChallenges}
+    - Solo habits: ${userContext.social.soloHabits}
+    ${userContext.social.hasSquad ? '- Has squad/team' : '- Solo user'}
+
+${userContext.whyMatters && userContext.whyMatters.length > 0 ? `- "Why it matters" answers: ${userContext.whyMatters.join(', ')}` : ''}
+${userContext.mood ? `- Recent emotional state: ${userContext.mood}` : ''}
 
 YOUR TASK:
 
@@ -192,60 +279,33 @@ OUTPUT FORMAT:
 
 ONLY output the above JSON object. No markdown, no code blocks, just valid JSON.`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+  try {
+    console.log('[AI Sage] Calling Gemini API with model: gemini-2.5-flash');
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
 
-    // Parse JSON from response
+    // Extract text from response (simplified like personaGenerator)
+    const text = (response as any).text || response.text || '';
+
+    // Extract JSON from response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('No JSON found in Gemini response');
+      console.error('[AI Sage] No JSON found in text:', text);
+      throw new Error('No JSON found in Gemini response. Response: ' + text.substring(0, 200));
     }
 
-    const aiResponse: AISageResponse = JSON.parse(jsonMatch[0]);
-    return aiResponse;
+    const insight: AISageInsight = JSON.parse(jsonMatch[0]);
+    console.log('[AI Sage] Parsed insight:', insight);
+    return insight;
   } catch (error) {
-    console.error('Error calling Gemini API for AI Sage:', error);
-    return getFallbackInsights(userData, habits);
+    console.error('[AI Sage] Error generating insights:', error);
+    if (error instanceof Error) {
+      console.error('[AI Sage] Error message:', error.message);
+      console.error('[AI Sage] Error stack:', error.stack);
+    }
+    throw error;
   }
-}
-
-/**
- * Fallback insights when Gemini API is not available
- */
-function getFallbackInsights(
-  userData: UserData,
-  habits: Habit[]
-): AISageResponse {
-  const persona = userData.persona?.personaName || userData.championArchetype || 'Guardian';
-  const currentStreak = userData.currentStreak || 0;
-  const habitCount = habits.length;
-
-  // Simple fallback logic
-  if (habitCount === 0) {
-    return {
-      insight: "You're just getting started! Building your first habit is the hardest step, but you've got this. Every champion starts with a single action.",
-      suggested_habit: "Start with a simple 2-minute morning routine—maybe drinking a glass of water or doing 5 deep breaths. Small wins build momentum!",
-    };
-  }
-
-  if (currentStreak >= 7) {
-    return {
-      insight: `Wow, you're on a ${currentStreak}-day streak! Your consistency is impressive and shows real commitment. Keep that momentum going!`,
-      suggested_habit: "Since you're crushing it, how about adding a complementary habit? If you do morning workouts, try a 5-minute evening stretch to balance your routine.",
-    };
-  }
-
-  if (currentStreak < 3) {
-    return {
-      insight: "Building habits takes time, and you're in the early stages. Don't worry about perfection—focus on showing up consistently, even if it's just for 2 minutes.",
-      suggested_habit: "Start with a micro-habit you can't fail: something so small it takes less than 2 minutes. Like 'read one page' or 'do 2 push-ups'—build the routine first!",
-    };
-  }
-
-  return {
-    insight: `You're making progress with ${habitCount} active habit${habitCount > 1 ? 's' : ''}! Consistency is key, and you're building that muscle. Keep going!`,
-    suggested_habit: "Consider adding a habit that complements your existing ones. If you have physical habits, try a mental one like journaling or meditation.",
-  };
 }
 

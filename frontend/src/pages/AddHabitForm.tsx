@@ -315,28 +315,39 @@ const AddHabitForm = () => {
       case 1:
         return (
           <div className="space-y-6 animate-in slide-in-from-right duration-300">
-            {/* Show habit name if coming from AI Sage */}
+            {/* Show habit name if coming from AI Sage - Genie-style card with darker theme */}
             {fromAISage && formData.name && (
-              <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4 mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <Label className="text-sm font-semibold text-purple-700 dark:text-purple-300">
-                    AI Sage Suggested Habit
-                  </Label>
+              <div className="relative bg-gradient-to-br from-purple-900/90 via-indigo-900/80 to-purple-800/90 dark:from-purple-950/95 dark:via-indigo-950/90 dark:to-purple-900/95 border-2 border-purple-500/50 dark:border-purple-400/40 rounded-2xl p-5 mb-6 shadow-2xl backdrop-blur-sm">
+                {/* Sparkle effects */}
+                <div className="absolute -top-1 -right-1 text-lg animate-sparkle" style={{ animationDelay: '0s' }}>✨</div>
+                <div className="absolute -bottom-1 -left-1 text-base animate-sparkle" style={{ animationDelay: '1s' }}>⭐</div>
+                
+                {/* Glowing effect */}
+                <div className="absolute inset-0 bg-purple-500/10 rounded-2xl blur-xl animate-pulse" />
+                
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-5 h-5 text-purple-300 dark:text-purple-200 animate-pulse" />
+                    <Label className="text-sm font-semibold text-purple-200 dark:text-purple-100 uppercase tracking-wide">
+                      ✨ AI Sage Suggested Habit
+                    </Label>
+                  </div>
+                  <p className="text-base font-semibold text-white dark:text-purple-50 mb-3 leading-relaxed">
+                    {formData.name}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-purple-200 dark:text-purple-100 hover:text-white dark:hover:text-purple-50 hover:bg-purple-800/50 dark:hover:bg-purple-800/50"
+                    onClick={() => {
+                      setFormData({ ...formData, name: '' });
+                      setCurrentStep(0);
+                    }}
+                  >
+                    Change name
+                  </Button>
                 </div>
-                <p className="text-lg font-medium text-black dark:text-white">{formData.name}</p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="mt-2 text-xs"
-                  onClick={() => {
-                    setFormData({ ...formData, name: '' });
-                    setCurrentStep(0);
-                  }}
-                >
-                  Change name
-                </Button>
               </div>
             )}
             {/* Frequency */}
@@ -628,16 +639,18 @@ const AddHabitForm = () => {
           </div>
         </div>
 
-        {/* Sage Comment */}
-        <Card className="mb-8 p-4 bg-primary/10 border-primary/20">
-          <div className="flex items-start gap-3">
-            <Sparkles className="w-6 h-6 text-primary mt-1" />
-            <div>
-              <p className="text-sm font-medium text-primary mb-1">Sage AI</p>
-              <p className="text-sm text-muted-foreground">{getSageComment()}</p>
+        {/* Sage Comment - Hide when coming from AI Sage (we show the suggestion card instead) */}
+        {!fromAISage && (
+          <Card className="mb-8 p-4 bg-primary/10 border-primary/20">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-6 h-6 text-primary mt-1" />
+              <div>
+                <p className="text-sm font-medium text-primary mb-1">Sage AI</p>
+                <p className="text-sm text-muted-foreground">{getSageComment()}</p>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {/* Step Content */}
         <Card className="p-6 md:p-8 mb-8">

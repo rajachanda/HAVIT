@@ -179,11 +179,6 @@ export const Dashboard = () => {
           </div>
         </Card>
 
-        {/* AI Sage Section */}
-        {userData && (
-          <AISage userData={userData} habits={habits} />
-        )}
-
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Champion Display */}
@@ -228,6 +223,9 @@ export const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* AI Sage - Bottom Left Floating Assistant */}
+      <AISage />
     </div>
   );
 };
