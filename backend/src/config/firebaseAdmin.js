@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load environment variables from backend/.env
+// From backend/src/config/, go up 2 levels to reach backend/.env
 dotenv.config({ path: join(__dirname, '../../.env') });
 
 // Debug: Log loaded env vars
