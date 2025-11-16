@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
 
 interface DateCarouselProps {
   habits: any[];
@@ -37,13 +35,13 @@ export default function DateCarousel({ habits, onDateSelect }: DateCarouselProps
 
   const scrollLeft = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+      scrollRef.current.scrollBy({ left: -240, behavior: 'smooth' });
     }
   };
 
   const scrollRight = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+      scrollRef.current.scrollBy({ left: 240, behavior: 'smooth' });
     }
   };
 
@@ -51,17 +49,10 @@ export default function DateCarousel({ habits, onDateSelect }: DateCarouselProps
   useEffect(() => {
     if (scrollRef.current) {
       const todayIndex = dates.findIndex(d => d.toISOString().split('T')[0] === new Date().toISOString().split('T')[0]);
-      const scrollPosition = todayIndex * 120 - 200;
-      scrollRef.current.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+      const scrollPosition = todayIndex * 64 - 160;
+      scrollRef.current.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
     }
   }, []);
-
-  const getHabitsForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return habits.filter(habit => 
-      habit.completions?.some((c: any) => c.date === dateStr)
-    );
-  };
 
   const getCompletedCountForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
@@ -70,20 +61,22 @@ export default function DateCarousel({ habits, onDateSelect }: DateCarouselProps
     ).length;
   };
 
-  const formatDate = (date: Date) => {
+  const getTotalHabitsForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    // For today and future dates, show all habits
+    // For past dates, show habits that had entries
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const compareDate = new Date(date);
     compareDate.setHours(0, 0, 0, 0);
     
-    const diffTime = compareDate.getTime() - today.getTime();
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    if (compareDate >= today) {
+      return habits.length;
+    }
     
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Tomorrow';
-    if (diffDays === -1) return 'Yesterday';
-    
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return habits.filter(habit => 
+      habit.completions?.some((c: any) => c.date === dateStr)
+    ).length;
   };
 
   const getDayName = (date: Date) => {
@@ -95,119 +88,71 @@ export default function DateCarousel({ habits, onDateSelect }: DateCarouselProps
     return date.toISOString().split('T')[0] === today.toISOString().split('T')[0];
   };
 
-  const isPast = (date: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date < today;
-  };
-
-  const selectedDateObj = dates.find(d => d.toISOString().split('T')[0] === selectedDate);
-  const selectedHabits = selectedDateObj ? getHabitsForDate(selectedDateObj) : [];
-  const completedCount = selectedDateObj ? getCompletedCountForDate(selectedDateObj) : 0;
-
   return (
-    <Card className="bg-card border-border p-6 shadow-lg">
-      <div className="flex items-center gap-4 mb-4">
-        <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          📅 Daily Overview
-        </h2>
-        {selectedDateObj && (
-          <Badge variant="outline" className="text-base">
-            {formatDate(selectedDateObj)}
-          </Badge>
-        )}
-      </div>
-
+    <div className="p-3">
       {/* Carousel */}
       <div className="relative">
         {/* Left Arrow */}
         <Button
           size="icon"
           variant="ghost"
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background shadow-md"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/95 backdrop-blur-sm hover:bg-muted shadow-sm"
           onClick={scrollLeft}
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4" />
         </Button>
 
         {/* Date Cards */}
         <div 
           ref={scrollRef}
-          className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth px-12"
+          className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth px-10"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {dates.map((date, index) => {
             const dateStr = date.toISOString().split('T')[0];
             const isSelected = dateStr === selectedDate;
             const completed = getCompletedCountForDate(date);
-            const total = getHabitsForDate(date).length;
-            const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+            const total = getTotalHabitsForDate(date);
+            const isComplete = total > 0 && completed === total;
 
             return (
               <button
                 key={index}
                 onClick={() => handleDateClick(date)}
-                className={`flex-shrink-0 w-28 p-4 rounded-xl border-2 transition-all duration-300 ${
+                className={`flex-shrink-0 w-14 h-18 p-2 rounded-lg border transition-all duration-200 ${
                   isSelected
-                    ? 'border-primary bg-primary/10 shadow-lg scale-105'
+                    ? 'border-primary bg-primary/10 shadow-md scale-105'
                     : isToday(date)
-                    ? 'border-warning bg-warning/5'
-                    : 'border-border bg-background/50 hover:border-primary/50 hover:bg-muted'
+                    ? 'border-warning/50 bg-warning/5'
+                    : 'border-border bg-background/50 hover:border-primary/30 hover:bg-muted/50'
                 }`}
               >
                 {/* Day Name */}
-                <div className={`text-sm font-medium mb-1 ${
+                <div className={`text-[10px] font-medium mb-0.5 ${
                   isSelected ? 'text-primary' : 'text-muted-foreground'
                 }`}>
                   {getDayName(date)}
                 </div>
 
                 {/* Date */}
-                <div className={`text-2xl font-bold mb-2 ${
+                <div className={`text-xl font-bold mb-1 ${
                   isSelected ? 'text-primary' : 'text-foreground'
                 }`}>
                   {date.getDate()}
                 </div>
 
-                {/* Today Badge */}
-                {isToday(date) && !isSelected && (
-                  <Badge className="mb-2 text-xs bg-warning text-warning-foreground">
-                    Today
-                  </Badge>
-                )}
-
-                {/* Completion Indicator */}
-                {total > 0 && (
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-center gap-1 text-xs">
-                      <span className="font-semibold text-success">{completed}</span>
-                      <span className="text-muted-foreground">/</span>
-                      <span className="text-muted-foreground">{total}</span>
-                    </div>
-                    
-                    {/* Progress Bar */}
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          completionRate === 100 ? 'bg-success' : 'bg-primary'
-                        }`}
-                        style={{ width: `${completionRate}%` }}
-                      />
-                    </div>
-
-                    {/* Percentage */}
-                    {completionRate === 100 && (
-                      <div className="text-xs font-bold text-success">✓</div>
-                    )}
-                  </div>
-                )}
-
-                {/* No habits indicator */}
-                {total === 0 && isPast(date) && (
-                  <div className="text-xs text-muted-foreground">
-                    No data
-                  </div>
-                )}
+                {/* Status Indicator */}
+                <div className="text-sm">
+                  {total > 0 ? (
+                    isComplete ? (
+                      <span className="text-success">✓</span>
+                    ) : (
+                      <span className="text-muted-foreground">○</span>
+                    )
+                  ) : (
+                    <span className="text-muted-foreground/30">·</span>
+                  )}
+                </div>
               </button>
             );
           })}
@@ -217,55 +162,11 @@ export default function DateCarousel({ habits, onDateSelect }: DateCarouselProps
         <Button
           size="icon"
           variant="ghost"
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background shadow-md"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/95 backdrop-blur-sm hover:bg-muted shadow-sm"
           onClick={scrollRight}
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4" />
         </Button>
-      </div>
-
-      {/* Selected Date Summary */}
-      <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-lg text-foreground">
-            {selectedDateObj && formatDate(selectedDateObj)}
-          </h3>
-          <div className="flex items-center gap-2">
-            <Badge variant={completedCount === habits.length && habits.length > 0 ? "default" : "secondary"}>
-              {completedCount} / {habits.length} completed
-            </Badge>
-          </div>
-        </div>
-
-        {/* Habit Pills */}
-        <div className="flex flex-wrap gap-2">
-          {selectedHabits.length > 0 ? (
-            selectedHabits.map((habit, idx) => {
-              const isCompleted = habit.completions?.some(
-                (c: any) => c.date === selectedDate && c.completed
-              );
-              return (
-                <Badge
-                  key={idx}
-                  variant={isCompleted ? "default" : "outline"}
-                  className={`${
-                    isCompleted
-                      ? 'bg-success text-success-foreground'
-                      : 'bg-background'
-                  }`}
-                >
-                  {isCompleted ? '✓' : '○'} {habit.name}
-                </Badge>
-              );
-            })
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {isPast(selectedDateObj!) 
-                ? 'No habits tracked on this date' 
-                : 'No habits scheduled for this date'}
-            </p>
-          )}
-        </div>
       </div>
 
       {/* CSS for hiding scrollbar */}
@@ -274,6 +175,6 @@ export default function DateCarousel({ habits, onDateSelect }: DateCarouselProps
           display: none;
         }
       `}</style>
-    </Card>
+    </div>
   );
 }
