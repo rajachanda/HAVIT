@@ -14,6 +14,7 @@ import { StatsBar } from "./StatsBar";
 import { QuickAddHabit } from "./QuickAddHabit";
 import { RealtimeBadge } from "./RealtimeBadge";
 import MiniDateCarousel from "./MiniDateCarousel";
+import { AISage } from "./AISage";
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -263,6 +264,9 @@ export const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* AI Sage - Bottom Left Floating Assistant */}
+      <AISage />
     </div>
   );
 };

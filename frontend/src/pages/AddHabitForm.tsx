@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,16 +32,23 @@ interface HabitFormData {
 
 const AddHabitForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser } = useAuth();
   const { data: userData } = useUser(currentUser?.uid || null);
   const { toast } = useToast();
   const { width, height } = useWindowSize();
-  const [currentStep, setCurrentStep] = useState(0);
+  
+  // Check if coming from AI Sage with suggested habit
+  const suggestedHabit = (location.state as any)?.suggestedHabit || '';
+  const fromAISage = (location.state as any)?.fromAISage || false;
+  
+  // Start at step 1 (Schedule - time/frequency) if coming from AI Sage, otherwise step 0
+  const [currentStep, setCurrentStep] = useState(fromAISage ? 1 : 0);
   const [showConfetti, setShowConfetti] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState<HabitFormData>({
-    name: '',
+    name: suggestedHabit || '',
     category: 'Health',
     difficulty: 'medium',
     frequency: 'daily',
@@ -51,6 +58,13 @@ const AddHabitForm = () => {
     accountability: 'private',
     streakGoal: 7,
   });
+
+  // Update form data when suggested habit is provided
+  useEffect(() => {
+    if (suggestedHabit && !formData.name) {
+      setFormData(prev => ({ ...prev, name: suggestedHabit }));
+    }
+  }, [suggestedHabit]);
 
   const categories = [
     { value: 'Health', emoji: '💪', color: 'text-green-500' },
@@ -118,6 +132,11 @@ const AddHabitForm = () => {
         return;
       }
     }
+    
+    // Skip validation for step 1 if coming from AI Sage (name already filled)
+    if (currentStep === 1 && fromAISage) {
+      // Just proceed to next step
+    }
 
     if (currentStep === 2) {
       if (!formData.whyItMatters.trim()) {
@@ -130,6 +149,12 @@ const AddHabitForm = () => {
       }
     }
 
+    // If coming from AI Sage and on step 1 (Schedule), skip to save (skip motivation step)
+    if (fromAISage && currentStep === 1) {
+      handleSave();
+      return;
+    }
+    
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -290,6 +315,30 @@ const AddHabitForm = () => {
       case 1:
         return (
           <div className="space-y-6 animate-in slide-in-from-right duration-300">
+            {/* Show habit name if coming from AI Sage */}
+            {fromAISage && formData.name && (
+              <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4 mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <Label className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                    AI Sage Suggested Habit
+                  </Label>
+                </div>
+                <p className="text-lg font-medium text-black dark:text-white">{formData.name}</p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="mt-2 text-xs"
+                  onClick={() => {
+                    setFormData({ ...formData, name: '' });
+                    setCurrentStep(0);
+                  }}
+                >
+                  Change name
+                </Button>
+              </div>
+            )}
             {/* Frequency */}
             <div className="space-y-3">
               <Label className="text-lg font-semibold flex items-center gap-2">
