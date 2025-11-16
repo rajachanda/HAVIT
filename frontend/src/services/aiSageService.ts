@@ -256,25 +256,34 @@ ${userContext.mood ? `- Recent emotional state: ${userContext.mood}` : ''}
 
 YOUR TASK:
 
-1. Based on all of the above, provide ONE positive, specific insight in 2 sentences.
+1. Based on all of the above, provide ONE positive, specific insight in 1-2 SHORT sentences (max 30 words).
 
-2. Suggest ONE new habit idea that fits their personality, goals, and gaps—not generic, but based on the data.
+2. Suggest ONE new habit idea that is SIMPLE and CONCISE - a single action, NOT a paragraph. Keep it under 15 words. Make it specific and actionable.
 
 3. Phrase it as a coach, in a friendly, non-judgmental tone.
 
 EXAMPLES:
 
-- "I noticed you crush physical habits but often miss mindfulness. How about adding a 3-min breath exercise? That will round out your streak!"
+Insight: "I noticed you crush physical habits but often miss mindfulness."
+Suggested Habit: "3-minute breathing exercise before bed"
 
-- "You've built a great morning routine, but evenings are less consistent. Want to try a quick 'no-phone after 9PM' challenge next week?"
+Insight: "You've built a great morning routine, but evenings are less consistent."
+Suggested Habit: "No phone after 9 PM"
 
-- "Your friend challenges spike your motivation—what if you invite a friend for a reading duo habit this month?"
+Insight: "Your friend challenges spike your motivation—invite someone to join you!"
+Suggested Habit: "Start a reading duo with a friend"
+
+IMPORTANT RULES FOR SUGGESTED HABIT:
+- Keep it SHORT (under 15 words)
+- Make it a simple action, NOT a long description
+- NO extra explanation or context
+- Just state the habit clearly
 
 OUTPUT FORMAT:
 
 {
-  "insight": "...",
-  "suggested_habit": "..."
+  "insight": "short insight (max 30 words)",
+  "suggested_habit": "simple habit description (max 15 words)"
 }
 
 ONLY output the above JSON object. No markdown, no code blocks, just valid JSON.`;

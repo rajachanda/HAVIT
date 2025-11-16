@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Flame, Trophy, Zap, Sparkles, ArrowUp } from "lucide-react";
+import { Plus, Flame, Trophy, Zap, Sparkles, ArrowUp, ArrowDown } from "lucide-react";
 import { ChampionDisplay } from "./ChampionDisplay";
 import { HabitCard } from "./HabitCard";
 import { StatsBar } from "./StatsBar";
@@ -27,6 +27,10 @@ export const Dashboard = () => {
   const prevLevelRef = useRef(levelInfo?.level || 1);
   const [previousXP, setPreviousXP] = useState<number | null>(null);
   const [showXPChange, setShowXPChange] = useState(false);
+  
+  // Test mode for level progression
+  const [testLevel, setTestLevel] = useState<number | null>(null);
+  const [isTestMode, setIsTestMode] = useState(false);
 
   // Track XP changes and level ups
   useEffect(() => {
@@ -55,6 +59,24 @@ export const Dashboard = () => {
   // Reset animation
   const handleThunderComplete = () => {
     setShowThunder(false);
+  };
+
+  // Test level increase function
+  const handleTestLevelIncrease = () => {
+    const currentLevel = isTestMode ? (testLevel || 1) : (levelInfo?.level || 1);
+    const newLevel = Math.min(currentLevel + 1, 9); // Max level 9
+    setTestLevel(newLevel);
+    setIsTestMode(true);
+    setShowThunder(true);
+  };
+
+  // Test level decrease function
+  const handleTestLevelDecrease = () => {
+    const currentLevel = isTestMode ? (testLevel || 1) : (levelInfo?.level || 1);
+    const newLevel = Math.max(currentLevel - 1, 1); // Min level 1
+    setTestLevel(newLevel);
+    setIsTestMode(true);
+    setShowThunder(true);
   };
 
   // Calculate today's habit completions
@@ -182,10 +204,10 @@ export const Dashboard = () => {
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Champion Display */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-4">
             <ChampionDisplay
               championType={userData?.championArchetype || "Guardian"}
-              level={levelInfo?.level || 1}
+              level={isTestMode ? (testLevel || 1) : (levelInfo?.level || 1)}
               xp={levelInfo?.currentXP || 0}
               xpToNext={levelInfo?.xpForNextLevel || 1000}
               totalXP={totalXP || 0}
@@ -193,6 +215,42 @@ export const Dashboard = () => {
               showThunder={showThunder}
               onThunderComplete={handleThunderComplete}
             />
+            
+            {/* Test Level Control Buttons */}
+            <Card className="p-4 bg-gradient-to-br from-warning/10 to-primary/10 border-warning/30">
+              <div className="space-y-3">
+                <div className="text-center">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                    Character Evolution Test
+                  </p>
+                  <p className="text-2xl font-bold text-warning">
+                    Level {isTestMode ? testLevel : (levelInfo?.level || 1)}
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    onClick={handleTestLevelDecrease}
+                    size="lg"
+                    disabled={isTestMode ? testLevel === 1 : (levelInfo?.level || 1) === 1}
+                    className="bg-destructive hover:bg-destructive/90 text-white font-semibold"
+                  >
+                    <ArrowDown className="w-5 h-5 mr-2" />
+                    Decrease
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleTestLevelIncrease}
+                    size="lg"
+                    disabled={isTestMode ? testLevel === 9 : (levelInfo?.level || 1) === 9}
+                    className="bg-success hover:bg-success/90 text-white font-semibold"
+                  >
+                    <ArrowUp className="w-5 h-5 mr-2" />
+                    Increase
+                  </Button>
+                </div>
+              </div>
+            </Card>
           </div>
 
           {/* Habits List */}

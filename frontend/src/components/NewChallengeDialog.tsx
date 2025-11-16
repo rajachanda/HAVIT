@@ -143,11 +143,11 @@ export function NewChallengeDialog({ open, onOpenChange }: NewChallengeDialogPro
     try {
       await createChallenge(
         currentUser.uid,
-        currentUserData.username,
-        currentUserData.avatar || '',
+        currentUserData.username || currentUserData.firstName || 'User',
+        currentUserData.avatar || currentUserData.firstName?.charAt(0) || 'U',
         selectedUser.id,
-        selectedUser.username,
-        selectedUser.avatar || '',
+        selectedUser.username || selectedUser.firstName || 'Opponent',
+        selectedUser.avatar || selectedUser.firstName?.charAt(0) || 'O',
         selectedHabit.id,
         selectedHabit.name,
         selectedHabit.category,
