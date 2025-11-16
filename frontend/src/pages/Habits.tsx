@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { HabitCard } from "@/components/HabitCard";
 import { QuickAddHabit } from "@/components/QuickAddHabit";
+import DateCarousel from "@/components/DateCarousel";
 import { Plus, Search, Filter, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHabits } from "@/hooks/useFirebase";
@@ -171,6 +172,15 @@ const Habits = () => {
             <div className="text-sm text-muted-foreground">Completion Rate</div>
           </Card>
         </div>
+
+        {/* Date Carousel */}
+        <DateCarousel 
+          habits={habits}
+          onDateSelect={(date) => {
+            console.log('Selected date:', date);
+            // You can add additional filtering logic here if needed
+          }}
+        />
 
         {/* Habits List */}
         <div className="space-y-3">
