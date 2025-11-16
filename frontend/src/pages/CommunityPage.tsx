@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, TrendingUp, Users2, Trophy, ChevronRight, MessageCircle, Plus, X } from 'lucide-react';
+import { Search, TrendingUp, Users2, Trophy, ChevronRight, MessageCircle, Plus, X, Flame, Target, Award } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -126,24 +126,24 @@ export default function CommunityPage() {
               <Tabs value={activeFilter} onValueChange={(v) => setActiveFilter(v as FeedFilter)}>
                 <TabsList className="grid grid-cols-5 w-full bg-muted">
                   <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    <span className="hidden sm:inline">🌐 All Posts</span>
-                    <span className="sm:hidden">🌐 All</span>
+                    <span className="hidden sm:inline"><Users2 className="w-4 h-4 inline mr-1" /> All Posts</span>
+                    <span className="sm:hidden"><Users2 className="w-4 h-4" /></span>
                   </TabsTrigger>
                   <TabsTrigger value="following" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    <span className="hidden sm:inline">📰 Following</span>
-                    <span className="sm:hidden">📰</span>
+                    <span className="hidden sm:inline"><TrendingUp className="w-4 h-4 inline mr-1" /> Following</span>
+                    <span className="sm:hidden"><TrendingUp className="w-4 h-4" /></span>
                   </TabsTrigger>
                   <TabsTrigger value="trending" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    <span className="hidden sm:inline">🔥 Trending</span>
-                    <span className="sm:hidden">🔥</span>
+                    <span className="hidden sm:inline"><Flame className="w-4 h-4 inline mr-1" /> Trending</span>
+                    <span className="sm:hidden"><Flame className="w-4 h-4" /></span>
                   </TabsTrigger>
                   <TabsTrigger value="challenges" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    <span className="hidden sm:inline">💪 Challenges</span>
-                    <span className="sm:hidden">💪</span>
+                    <span className="hidden sm:inline"><Target className="w-4 h-4 inline mr-1" /> Challenges</span>
+                    <span className="sm:hidden"><Target className="w-4 h-4" /></span>
                   </TabsTrigger>
                   <TabsTrigger value="achievements" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    <span className="hidden sm:inline">🏆 Achievements</span>
-                    <span className="sm:hidden">🏆</span>
+                    <span className="hidden sm:inline"><Award className="w-4 h-4 inline mr-1" /> Achievements</span>
+                    <span className="sm:hidden"><Award className="w-4 h-4" /></span>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -292,7 +292,7 @@ export default function CommunityPage() {
                       className="bg-muted rounded-lg p-3 hover:bg-card-hover transition-colors cursor-pointer border border-border"
                     >
                       <div className="flex items-start gap-2">
-                        <span className="text-2xl">🔥</span>
+                        <Flame className="w-6 h-6 text-warning" />
                         <div className="flex-1">
                           <h4 className="font-semibold text-foreground text-sm mb-1">
                             {challenge.name || 'Challenge'}

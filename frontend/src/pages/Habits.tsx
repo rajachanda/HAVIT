@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { HabitCard } from "@/components/HabitCard";
 import { QuickAddHabit } from "@/components/QuickAddHabit";
 import DateCarousel from "@/components/DateCarousel";
-import { Plus, Search, Filter, Zap } from "lucide-react";
+import { Plus, Search, Filter, Zap, BarChart3, CheckCircle2, Flame, TrendingUp, Inbox, SearchX } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHabits } from "@/hooks/useFirebase";
 
@@ -116,7 +116,7 @@ const Habits = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Card className="bg-card border-border p-4 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">📊</div>
+              <BarChart3 className="w-8 h-8 text-primary" />
               <div>
                 <div className="text-2xl font-bold text-foreground">{habits.length}</div>
                 <div className="text-xs text-muted-foreground">Total Habits</div>
@@ -125,7 +125,7 @@ const Habits = () => {
           </Card>
           <Card className="bg-card border-border p-4 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">✅</div>
+              <CheckCircle2 className="w-8 h-8 text-success" />
               <div>
                 <div className="text-2xl font-bold text-success">{completedToday}</div>
                 <div className="text-xs text-muted-foreground">Completed Today</div>
@@ -134,7 +134,7 @@ const Habits = () => {
           </Card>
           <Card className="bg-card border-border p-4 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">🔥</div>
+              <Flame className="w-8 h-8 text-warning" />
               <div>
                 <div className="text-2xl font-bold text-warning">{longestStreak}</div>
                 <div className="text-xs text-muted-foreground">Longest Streak</div>
@@ -143,7 +143,7 @@ const Habits = () => {
           </Card>
           <Card className="bg-card border-border p-4 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">📈</div>
+              <TrendingUp className="w-8 h-8 text-primary" />
               <div>
                 <div className="text-2xl font-bold text-primary">{completionRate}%</div>
                 <div className="text-xs text-muted-foreground">Completion Rate</div>
@@ -208,8 +208,12 @@ const Habits = () => {
             ))
           ) : (
             <Card className="bg-card border-border p-8 md:p-12 text-center">
-              <div className="text-5xl mb-4">
-                {habits.length === 0 ? '📭' : '🔍'}
+              <div className="flex justify-center mb-4">
+                {habits.length === 0 ? (
+                  <Inbox className="w-16 h-16 text-muted-foreground" />
+                ) : (
+                  <SearchX className="w-16 h-16 text-muted-foreground" />
+                )}
               </div>
               <p className="text-muted-foreground text-lg font-medium mb-2">
                 {habits.length === 0 
