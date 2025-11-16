@@ -13,7 +13,7 @@ import { HabitCard } from "./HabitCard";
 import { StatsBar } from "./StatsBar";
 import { QuickAddHabit } from "./QuickAddHabit";
 import { RealtimeBadge } from "./RealtimeBadge";
-import MiniDateCarousel from "./MiniDateCarousel";
+import { AISage } from "./AISage";
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -24,7 +24,6 @@ export const Dashboard = () => {
 
   const [showThunder, setShowThunder] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const prevLevelRef = useRef(levelInfo?.level || 1);
   const [previousXP, setPreviousXP] = useState<number | null>(null);
   const [showXPChange, setShowXPChange] = useState(false);
@@ -65,19 +64,6 @@ export const Dashboard = () => {
   ).length;
   const totalHabits = habits.length;
   const progressPercent = totalHabits > 0 ? (completedToday / totalHabits) * 100 : 0;
-
-  // Filter habits by selected date
-  const filteredHabits = habits.filter((h) => {
-    // For today, show all habits
-    if (selectedDate === today) return true;
-    // For other dates, show habits that have entries for that date
-    return h.completions?.some((c) => c.date === selectedDate);
-  });
-
-  // Calculate completion for selected date
-  const completedOnSelectedDate = habits.filter((h) => 
-    h.completions?.some((c) => c.date === selectedDate && c.completed)
-  ).length;
 
   // Calculate real completion rate (all time)
   const completedHabitsCount = habits.filter((h) => 
@@ -132,17 +118,7 @@ export const Dashboard = () => {
               Level {levelInfo?.level || 1} • {totalXP || 0} XP • {userData?.currentStreak || 0} day streak 🔥
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Date Carousel */}
-            <div className="hidden lg:block">
-              <MiniDateCarousel 
-                habits={habits}
-                onDateSelect={(date) => {
-                  setSelectedDate(date);
-                }}
-              />
-            </div>
-            
+          <div className="flex gap-2">
             <Button 
               size="lg" 
               variant="outline"
@@ -221,38 +197,22 @@ export const Dashboard = () => {
 
           {/* Habits List */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Date Carousel - Mobile Only */}
-            <div className="mb-4 lg:hidden">
-              <MiniDateCarousel 
-                habits={habits}
-                onDateSelect={(date) => {
-                  setSelectedDate(date);
-                }}
-              />
-            </div>
-
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold">Your Habits</h2>
               <Badge variant="outline" className="text-sm">
-                {filteredHabits.length} {selectedDate === today ? 'Active' : 'Tracked'}
+                {habits.length} Active
               </Badge>
             </div>
-            {filteredHabits.length === 0 ? (
+            {habits.length === 0 ? (
               <Card className="p-8 text-center">
-                <p className="text-muted-foreground mb-4">
-                  {habits.length === 0 
-                    ? 'No habits yet. Create your first habit to get started!' 
-                    : 'No habits tracked on this date.'}
-                </p>
-                {habits.length === 0 && (
-                  <Button onClick={() => navigate('/habits/new')}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Habit
-                  </Button>
-                )}
+                <p className="text-muted-foreground mb-4">No habits yet. Create your first habit to get started!</p>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Habit
+                </Button>
               </Card>
             ) : (
-              filteredHabits.map((habit) => (
+              habits.map((habit) => (
                 <HabitCard
                   key={habit.id}
                   habit={habit}
@@ -263,6 +223,9 @@ export const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* AI Sage - Bottom Left Floating Assistant */}
+      <AISage />
     </div>
   );
 };
