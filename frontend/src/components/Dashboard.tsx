@@ -13,6 +13,7 @@ import { HabitCard } from "./HabitCard";
 import { StatsBar } from "./StatsBar";
 import { QuickAddHabit } from "./QuickAddHabit";
 import { RealtimeBadge } from "./RealtimeBadge";
+import { AISage } from "./AISage";
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -177,6 +178,11 @@ export const Dashboard = () => {
             />
           </div>
         </Card>
+
+        {/* AI Sage Section */}
+        {userData && (
+          <AISage userData={userData} habits={habits} />
+        )}
 
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
