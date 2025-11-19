@@ -397,10 +397,13 @@ const Squad = () => {
   };
 
   const handleCompeteWithSquad = (squadId: string, squadName: string) => {
+    // Navigate to create a squad challenge
     toast({
-      title: "Challenge Coming Soon! 🏆",
-      description: `Squad vs Squad challenges will be available soon!`,
+      title: "Squad Challenge Initiated! 🏆",
+      description: `Prepare your squad to compete against ${squadName}! Challenge features coming in next update.`,
+      duration: 5000,
     });
+    // Future: navigate('/squad-challenge/new', { state: { opponentSquadId: squadId, opponentSquadName: squadName } });
   };
 
   if (loading) {

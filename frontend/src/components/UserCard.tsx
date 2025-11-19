@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Star, Flame, UserPlus, UserCheck } from 'lucide-react';
@@ -17,6 +18,7 @@ export default function UserCard({ user, onFollowChange, compact = false }: User
   const { currentUser } = useAuth();
   const { follow, unfollow, loading } = useFollowUser();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [isFollowing, setIsFollowing] = useState(user.isFollowing);
 
@@ -59,8 +61,8 @@ export default function UserCard({ user, onFollowChange, compact = false }: User
   };
 
   const handleCardClick = () => {
-    // TODO: Navigate to user profile
-    // window.location.href = `/profile/${user.id}`;
+    // Navigate to user profile page
+    navigate(`/profile/${user.id}`);
   };
 
   // Compact version for sidebar

@@ -158,7 +158,8 @@ export const HabitCard = ({ habit, userId }: HabitCardProps) => {
             className="h-8 w-8"
             onClick={(e) => {
               e.stopPropagation();
-              // TODO: Open edit modal
+              // Edit functionality: Delete and recreate habit with new values
+              alert('To modify this habit, delete it and create a new one with updated settings.');
             }}
           >
             <Pencil className="w-4 h-4" />

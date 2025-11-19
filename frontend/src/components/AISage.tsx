@@ -194,7 +194,7 @@ export const AISage = ({ className }: AISageProps) => {
                   <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-xl animate-pulse" />
                 </div>
                 <p className="text-sm text-foreground font-medium">The genie is reading your habits...</p>
-                <p className="text-xs text-muted-foreground mt-1">✨ Magical insights coming soon ✨</p>
+                <p className="text-xs text-muted-foreground mt-1">✨ Analyzing your journey ✨</p>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center py-16">

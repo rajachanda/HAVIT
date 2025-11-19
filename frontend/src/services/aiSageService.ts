@@ -176,12 +176,12 @@ export function buildUserContext(
     missedDays,
     challenges: challengeStats,
     social: {
-      hasSquad: false, // TODO: Add squad detection
+      hasSquad: !!(userData as any).squadId,
       friendChallenges: challenges.filter(c => c.challengeType === 'pvp').length,
       soloHabits: habits.length - challengeStats.active,
     },
     whyMatters: userData.persona?.traits || [],
-    mood: undefined, // TODO: Add mood tracking if available
+    mood: (userData as any).mood || undefined,
   };
 }
 

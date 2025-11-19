@@ -221,6 +221,16 @@ const App = () => (
               }
             />
             <Route
+              path="/profile/:userId"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Profile />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/profile/edit"
               element={
                 <ProtectedRoute>

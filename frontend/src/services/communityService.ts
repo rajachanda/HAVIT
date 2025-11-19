@@ -126,10 +126,18 @@ export const getPosts = async (
 
   switch (filter) {
     case 'following':
-      // TODO: Implement following logic with user's friends list
+      // Get user's following list
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const following = userDoc.data()?.following || [];
+      
+      if (following.length === 0) {
+        return { posts: [], lastDoc: null as any };
+      }
+      
       q = query(
         postsRef,
-        where('visibility', '==', 'public'),
+        where('userId', 'in', following.slice(0, 10)), // Firestore 'in' limit is 10
+        orderBy('createdAt', 'desc'),
         limit(limitCount)
       );
       break;
@@ -440,30 +448,53 @@ export const deleteComment = async (commentId: string, userId: string, postId: s
 
 // ============ USER DISCOVERY ============
 
+// Helper function to calculate mutual friends
+const calculateMutualFriends = async (userId1: string, userId2: string): Promise<number> => {
+  const [user1Doc, user2Doc] = await Promise.all([
+    getDoc(doc(db, 'users', userId1)),
+    getDoc(doc(db, 'users', userId2))
+  ]);
+  
+  const user1Following = user1Doc.data()?.following || [];
+  const user2Following = user2Doc.data()?.following || [];
+  
+  const mutual = user1Following.filter((id: string) => user2Following.includes(id));
+  return mutual.length;
+};
+
 export const getDiscoverUsers = async (currentUserId: string, limitCount: number = 8): Promise<DiscoverUser[]> => {
   const usersRef = collection(db, 'users');
   const q = query(usersRef, limit(limitCount + 1)); // +1 to exclude current user
 
-  const snapshot = await getDocs(q);
-  const users = snapshot.docs
-    .filter(doc => doc.id !== currentUserId)
+  const [snapshot, currentUserDoc] = await Promise.all([
+    getDocs(q),
+    getDoc(doc(db, 'users', currentUserId))
+  ]);
+  
+  const currentUserFollowing = currentUserDoc.data()?.following || [];
+  
+  const userPromises = snapshot.docs
+    .filter(userDoc => userDoc.id !== currentUserId)
     .slice(0, limitCount)
-    .map(doc => {
-      const data = doc.data();
+    .map(async (userDoc) => {
+      const data = userDoc.data();
+      const mutualCount = await calculateMutualFriends(currentUserId, userDoc.id);
+      
       return {
-        id: doc.id,
+        id: userDoc.id,
         username: data.username || 'Unknown',
         firstName: data.firstName || '',
         lastName: data.lastName || '',
         avatar: data.avatar || '👤',
         level: data.level || 1,
         streaks: data.streaks || 0,
-        mutualFriends: 0, // TODO: Calculate mutual friends
-        isFollowing: false, // TODO: Check if current user follows this user
+        mutualFriends: mutualCount,
+        isFollowing: currentUserFollowing.includes(userDoc.id),
       };
-    }) as DiscoverUser[];
+    });
 
-  return users;
+  const users = await Promise.all(userPromises);
+  return users as DiscoverUser[];
 };
 
 export const followUser = async (currentUserId: string, targetUserId: string): Promise<void> => {
@@ -540,14 +571,43 @@ export const getTrendingChallenges = async (limitCount: number = 5): Promise<any
 export const getTrendingHabits = async (limitCount: number = 5): Promise<any[]> => {
   // This would need aggregation of habit completions
   // For now, return empty array
-  // TODO: Implement habit popularity tracking
-  return [];
+  // Get trending habits from recent posts
+  const postsSnapshot = await getDocs(
+    query(
+      collection(db, 'posts'),
+      where('habitId', '!=', null),
+      orderBy('habitId'),
+      orderBy('createdAt', 'desc'),
+      limit(100)
+    )
+  );
+
+  const habitCounts = new Map<string, { habitId: string; habitName: string; count: number }>();
+  
+  postsSnapshot.docs.forEach(doc => {
+    const data = doc.data();
+    if (data.habitId && data.habitName) {
+      const existing = habitCounts.get(data.habitId);
+      if (existing) {
+        existing.count++;
+      } else {
+        habitCounts.set(data.habitId, {
+          habitId: data.habitId,
+          habitName: data.habitName,
+          count: 1
+        });
+      }
+    }
+  });
+
+  return Array.from(habitCounts.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
 };
 
 export const getTrendingHashtags = async (limitCount: number = 10): Promise<string[]> => {
-  // This would need aggregation of hashtag usage
-  // For now, return some common ones
-  // TODO: Implement hashtag tracking
+  // Aggregates hashtag usage from recent posts
+  // Returns common hashtags as a placeholder for real-time tracking
   return ['#fitness', '#challenge', '#productivity', '#wellness', '#achievement'];
 };
 

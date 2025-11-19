@@ -8,31 +8,37 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useXP } from "@/contexts/XPContext";
 import { useUserRealtime, useHabits } from "@/hooks/useFirebase";
 import { useUserPosts } from "@/hooks/useCommunityFeed";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import PostCard from "@/components/PostCard";
 import { useState, useEffect } from "react";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { userId: profileUserId } = useParams();
   const { currentUser } = useAuth();
+  
+  // Use profileUserId if viewing another user's profile, otherwise show current user
+  const viewingUserId = profileUserId || currentUser?.uid || null;
+  const isOwnProfile = !profileUserId || profileUserId === currentUser?.uid;
+  
   const { totalXP, levelInfo, loading: xpLoading } = useXP();
-  const { userData, loading: userLoading } = useUserRealtime(currentUser?.uid || null);
-  const { habits, loading: habitsLoading } = useHabits(currentUser?.uid || null);
-  const { posts, loading: postsLoading, refresh: refreshPosts } = useUserPosts(currentUser?.uid || '');
+  const { userData, loading: userLoading } = useUserRealtime(viewingUserId);
+  const { habits, loading: habitsLoading } = useHabits(viewingUserId);
+  const { posts, loading: postsLoading, refresh: refreshPosts } = useUserPosts(viewingUserId || '');
   const [previousXP, setPreviousXP] = useState<number | null>(null);
   const [showXPChange, setShowXPChange] = useState(false);
 
-  // Track XP changes
+  // Track XP changes (only for own profile)
   useEffect(() => {
+    if (!isOwnProfile) return;
     if (totalXP !== undefined && totalXP !== null) {
       if (previousXP !== null && totalXP !== previousXP) {
-        console.log('[Profile] XP Changed!', { from: previousXP, to: totalXP, diff: totalXP - previousXP });
         setShowXPChange(true);
         setTimeout(() => setShowXPChange(false), 3000);
       }
       setPreviousXP(totalXP);
     }
-  }, [totalXP, previousXP]);
+  }, [totalXP, previousXP, isOwnProfile]);
 
   // Calculate stats from real data
   const calculateStats = () => {
@@ -153,16 +159,18 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Edit Button - Top Right */}
-            <div className="flex-shrink-0">
-              <Button 
-                size="lg" 
-                variant="outline"
-                onClick={() => navigate('/profile/edit')}
-              >
-                Edit Profile
-              </Button>
-            </div>
+            {/* Edit Button - Top Right (only for own profile) */}
+            {isOwnProfile && (
+              <div className="flex-shrink-0">
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  onClick={() => navigate('/profile/edit')}
+                >
+                  Edit Profile
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* User Details */}

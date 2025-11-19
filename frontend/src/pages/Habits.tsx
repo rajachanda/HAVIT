@@ -156,7 +156,7 @@ const Habits = () => {
         <DateCarousel 
           habits={habits}
           onDateSelect={(date) => {
-            console.log('Selected date:', date);
+            // Date selection handled by DateCarousel component
           }}
         />
 

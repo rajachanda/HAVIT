@@ -36,8 +36,6 @@ export const Dashboard = () => {
   useEffect(() => {
     if (totalXP !== undefined && totalXP !== null) {
       if (previousXP !== null && totalXP !== previousXP) {
-        const xpGained = totalXP - previousXP;
-        console.log('[Dashboard] XP Changed!', { from: previousXP, to: totalXP, diff: xpGained });
         setShowXPChange(true);
         setTimeout(() => setShowXPChange(false), 3000);
       }
@@ -48,7 +46,6 @@ export const Dashboard = () => {
   // Track level changes for animation
   useEffect(() => {
     if (levelInfo?.level && levelInfo.level > prevLevelRef.current) {
-      console.log('[Dashboard] Level Up!', { from: prevLevelRef.current, to: levelInfo.level });
       setShowThunder(true);
     }
     if (levelInfo?.level) {

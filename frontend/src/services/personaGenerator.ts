@@ -39,9 +39,7 @@ export async function generatePersona(input: PersonaInput): Promise<Persona> {
   // Legacy format
   const { universalAnswers, branch, branchResponses } = input;
 
-  // For now, use a rule-based fallback until Gemini API is configured
-  // TODO: Replace with actual Gemini API call when VITE_GEMINI_API_KEY is set
-
+  // Use Gemini API for persona generation or fallback to rule-based
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
   if (apiKey) {
